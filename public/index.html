@@ -769,6 +769,137 @@
         color: var(--muted);
         margin: -4px 0 10px;
       }
+      .aptabs {
+        flex-wrap: wrap;
+      }
+      /* ===== 차트 ===== */
+      .chartnote {
+        font-size: 11.5px;
+        color: var(--muted);
+        margin: -2px 0 12px;
+      }
+      .clegend {
+        display: flex;
+        gap: 14px;
+        font-size: 11.5px;
+        color: var(--muted);
+        margin: 12px 0 0;
+      }
+      .clegend i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 5px;
+        vertical-align: -1px;
+      }
+      .cbars {
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+      }
+      .cbrow {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .cblab {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .cblab span {
+        word-break: keep-all;
+      }
+      .cbtrack {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .cbtrack i {
+        height: 7px;
+        border-radius: 4px;
+        display: block;
+        min-width: 2px;
+      }
+      .cbtrack b {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .cbtrack b.m {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .ksum {
+        font-size: 13px;
+        margin: 0 0 12px;
+      }
+      .ksum strong {
+        font-weight: 800;
+      }
+      .krows {
+        display: flex;
+        flex-direction: column;
+      }
+      .krow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 4px;
+        border-bottom: 1px solid var(--line);
+      }
+      .krow:last-child {
+        border-bottom: 0;
+      }
+      .kopp {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+      }
+      .kopp span {
+        word-break: keep-all;
+      }
+      .ksc {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .kres {
+        width: 30px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 6px;
+        padding: 2px 0;
+      }
+      .krow.win .kres {
+        background: rgba(58, 116, 230, 0.18);
+        color: #9bc0ff;
+      }
+      .krow.loss .kres {
+        background: rgba(230, 58, 76, 0.18);
+        color: #ff9aa6;
+      }
+      .krow.draw .kres {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+      }
+      .krow.up .kres {
+        background: transparent;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .krow.up .ksc {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 12px;
+      }
 
       .std-country {
         margin-bottom: 14px;
@@ -1202,6 +1333,18 @@
           </h2>
           <div id="stadiums"></div>
         </div>
+        <div class="card">
+          <h2>
+            <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_charts">통계 · 차트</span>
+          </h2>
+          <div class="aptabs ctabs" role="group" aria-label="차트 보기 선택">
+            <button id="cTabTiming" class="aptab on" type="button" aria-pressed="true">득점 시간대</button
+            ><button id="cTabTeams" class="aptab" type="button" aria-pressed="false">팀별 득실</button
+            ><button id="cTabKorea" class="aptab" type="button" aria-pressed="false">국가 흐름</button
+            ><button id="cTabScatter" class="aptab" type="button" aria-pressed="false">득점 vs 도움</button>
+          </div>
+          <div id="chartArea"></div>
+        </div>
       </div>
 
       <footer>
@@ -1316,6 +1459,26 @@
           tabPoint: "공격포인트",
           emptyPoints: "아직 집계 데이터가 없어요.",
           apFrom: (n) => n + "경기 반영",
+          charts: "통계 · 차트",
+          cTiming: "득점 시간대",
+          cTeams: "팀별 득실",
+          cKorea: "국가 흐름",
+          cScatter: "득점 vs 도움",
+          cTimingNote: (n) => "15분 구간별 · 총 " + n + "골",
+          cGoalsFor: "득점",
+          cGoalsAgainst: "실점",
+          cAxisGoals: "득점",
+          cAxisAssists: "도움",
+          cW: "승",
+          cD: "무",
+          cL: "패",
+          cGF: "득",
+          cGA: "실",
+          cScheduled: "예정",
+          cResW: "승",
+          cResD: "무",
+          cResL: "패",
+          emptyChart: "아직 차트로 보여줄 데이터가 없어요.",
           sub: "실시간 대시보드",
           live: "진행 중",
           finished: "경기 종료",
@@ -1347,6 +1510,26 @@
           tabPoint: "G+A",
           emptyPoints: "No data yet.",
           apFrom: (n) => "From " + n + " matches",
+          charts: "Stats · Charts",
+          cTiming: "Goal Timing",
+          cTeams: "Goals by Team",
+          cKorea: "Nation Form",
+          cScatter: "Goals vs Assists",
+          cTimingNote: (n) => "By 15-min interval · " + n + " goals",
+          cGoalsFor: "Scored",
+          cGoalsAgainst: "Conceded",
+          cAxisGoals: "Goals",
+          cAxisAssists: "Assists",
+          cW: "W",
+          cD: "D",
+          cL: "L",
+          cGF: "GF",
+          cGA: "GA",
+          cScheduled: "TBD",
+          cResW: "W",
+          cResD: "D",
+          cResL: "L",
+          emptyChart: "No chart data yet.",
           sub: "Live Dashboard",
           live: "LIVE",
           finished: "Full time",
@@ -1841,6 +2024,25 @@
           })
           .filter(Boolean);
       }
+      // 득점 시간(분) 추출: "45'", "45'+5'", "9'(OG)" → {base, plus}
+      function parseGoalMinutes(str) {
+        if (str == null) return [];
+        let s = String(str).trim().toLowerCase();
+        if (!s || s === "null") return [];
+        s = s
+          .replace(/[{}]/g, "")
+          .replace(/[\\"\u201c\u201d\u201e\u201f]/g, " ")
+          .replace(/\u2019/g, "'");
+        const out = [];
+        s.split(",").forEach((tok) => {
+          const re = /(\d{1,3})\s*'\s*(\+\s*(\d+))?/g;
+          let mt,
+            last = null;
+          while ((mt = re.exec(tok)) !== null) last = mt;
+          if (last) out.push({ base: +last[1], plus: last[3] ? +last[3] : 0 });
+        });
+        return out;
+      }
       function normGame(g) {
         const home = teamSide(g.home_team_id, g.home_team_name_en, g.home_score);
         const away = teamSide(g.away_team_id, g.away_team_name_en, g.away_score);
@@ -1868,6 +2070,7 @@
           away,
           homeScorers: parseScorers(g.home_scorers),
           awayScorers: parseScorers(g.away_scorers),
+          goalMins: parseGoalMinutes(g.home_scorers).concat(parseGoalMinutes(g.away_scorers)),
         };
       }
       function buildStandings(groups) {
@@ -1978,6 +2181,7 @@
         pointsUpdated: null,
         pointsMatches: 0,
         apTab: "a",
+        chartTab: "timing",
         match: null,
         fixtures: [],
         focusGroup: null,
@@ -2133,6 +2337,7 @@
         renderScorers();
         renderPoints();
         renderStadiums();
+        renderChart();
         renderStatus();
       }
       function renderLabels() {
@@ -2151,6 +2356,13 @@
         if (bs) bs.textContent = L.sub;
         const pt = document.getElementById("pageTitle");
         if (pt) pt.textContent = (state.lang === "ko" ? "월드컵 2026 " : "World Cup 2026 ") + L.sub;
+        const tc = document.getElementById("t_charts");
+        if (tc) tc.textContent = L.charts;
+        const ctabs = { cTabTiming: L.cTiming, cTabTeams: L.cTeams, cTabKorea: L.cKorea, cTabScatter: L.cScatter };
+        Object.keys(ctabs).forEach((id) => {
+          const b = document.getElementById(id);
+          if (b) b.textContent = ctabs[id];
+        });
       }
       function populatePicker() {
         const sel = document.getElementById("nationPicker");
@@ -2358,7 +2570,243 @@
           state.pointsUpdated = (d && d.updated) || null;
           state.pointsMatches = (d && d.matches) || 0;
           renderPoints();
+          renderChart();
         } catch (_) {}
+      }
+      /* ========================= 차트 (이미 받는 데이터로만 계산) ========================= */
+      const CC = {
+        gold: "#e9b94a",
+        red: "#e63a4c",
+        blue: "#3a74e6",
+        muted: "#8b95ad",
+        line: "rgba(255,255,255,0.12)",
+        grid: "rgba(255,255,255,0.06)",
+        text: "#edf1f8",
+      };
+      function svgWrap(w, h, inner, label) {
+        return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block;overflow:visible" role="img" aria-label="${esc(label || "chart")}">${inner}</svg>`;
+      }
+      const emptyChart = () => `<div class="empty">${esc(t().emptyChart)}</div>`;
+
+      // 1) 득점 시간대 히스토그램
+      function chartTiming() {
+        const L = t();
+        const labels = ["1-15", "16-30", "31-45", "46-60", "61-75", "76-90", "90+"];
+        const counts = [0, 0, 0, 0, 0, 0, 0];
+        (state.allFixtures || []).forEach((m) => {
+          if (m.status === "upcoming") return;
+          (m.goalMins || []).forEach((g) => {
+            let idx;
+            if (g.base > 90 || (g.plus > 0 && g.base >= 90)) idx = 6;
+            else idx = Math.min(5, Math.floor((Math.max(1, g.base) - 1) / 15));
+            counts[idx]++;
+          });
+        });
+        const total = counts.reduce((a, b) => a + b, 0);
+        if (!total) return emptyChart();
+        const W = 700,
+          H = 300,
+          padL = 28,
+          padR = 14,
+          padT = 26,
+          padB = 42;
+        const pw = W - padL - padR,
+          ph = H - padT - padB;
+        const max = Math.max(...counts, 1),
+          n = counts.length,
+          slot = pw / n,
+          bw = slot * 0.6;
+        let g = `<line x1="${padL}" y1="${padT + ph}" x2="${W - padR}" y2="${padT + ph}" stroke="${CC.line}"/>`;
+        counts.forEach((c, i) => {
+          const bh = (c / max) * ph,
+            x = padL + i * slot + (slot - bw) / 2,
+            y = padT + ph - bh;
+          g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, bh).toFixed(1)}" rx="4" fill="${CC.gold}"/>`;
+          if (c)
+            g += `<text x="${(x + bw / 2).toFixed(1)}" y="${(y - 7).toFixed(1)}" fill="${CC.text}" font-size="15" font-weight="700" text-anchor="middle">${c}</text>`;
+          g += `<text x="${(x + bw / 2).toFixed(1)}" y="${(padT + ph + 22).toFixed(1)}" fill="${CC.muted}" font-size="13" text-anchor="middle">${labels[i]}</text>`;
+        });
+        return `<div class="chartnote">${esc(L.cTimingNote(total))}</div>` + svgWrap(W, H, g, L.cTiming);
+      }
+
+      // 2) 팀별 득실
+      function chartTeams() {
+        const L = t(),
+          map = {};
+        (state.allFixtures || []).forEach((m) => {
+          if (m.status === "upcoming") return;
+          const hs = m.home.score ?? 0,
+            as = m.away.score ?? 0;
+          [
+            [m.home, hs, as],
+            [m.away, as, hs],
+          ].forEach((arr) => {
+            const side = arr[0],
+              gf = arr[1],
+              ga = arr[2],
+              k = (side.code || side.name || "").toUpperCase();
+            if (!k) return;
+            if (!map[k]) map[k] = { side, gf: 0, ga: 0, gp: 0 };
+            map[k].gf += gf;
+            map[k].ga += ga;
+            map[k].gp++;
+          });
+        });
+        const rows = Object.values(map)
+          .filter((r) => r.gp > 0)
+          .sort((a, b) => b.gf - a.gf || a.ga - b.ga)
+          .slice(0, 10);
+        if (!rows.length) return emptyChart();
+        const max = Math.max(...rows.map((r) => Math.max(r.gf, r.ga)), 1);
+        const legend = `<div class="clegend"><span><i style="background:${CC.gold}"></i>${esc(L.cGoalsFor)}</span><span><i style="background:${CC.muted}"></i>${esc(L.cGoalsAgainst)}</span></div>`;
+        return (
+          `<div class="cbars">` +
+          rows
+            .map(
+              (r) => `
+            <div class="cbrow">
+              <div class="cblab">${flagInline(r.side)}<span>${esc(displayName(r.side))}</span></div>
+              <div class="cbtrack"><i style="width:${((r.gf / max) * 86).toFixed(1)}%;background:${CC.gold}"></i><b>${r.gf}</b></div>
+              <div class="cbtrack"><i style="width:${((r.ga / max) * 86).toFixed(1)}%;background:${CC.muted}"></i><b class="m">${r.ga}</b></div>
+            </div>`,
+            )
+            .join("") +
+          `</div>` +
+          legend
+        );
+      }
+
+      // 3) 국가 흐름 (현재 포커스 국가)
+      function chartKorea() {
+        const L = t(),
+          nat = currentNation();
+        if (!nat) return emptyChart();
+        const ms = (state.allFixtures || [])
+          .filter((m) => matchesNation(m.home, nat) || matchesNation(m.away, nat))
+          .slice()
+          .sort((a, b) => String(a.kickoff || "").localeCompare(String(b.kickoff || "")));
+        if (!ms.length) return emptyChart();
+        let w = 0,
+          d = 0,
+          l = 0,
+          gf = 0,
+          ga = 0;
+        const rows = ms
+          .map((m) => {
+            const isHome = matchesNation(m.home, nat);
+            const me = isHome ? m.home : m.away,
+              opp = isHome ? m.away : m.home;
+            const myScore = me.score,
+              opScore = opp.score;
+            let res = "",
+              cls = "up",
+              scoreTxt;
+            if (m.status === "upcoming" || myScore == null) {
+              scoreTxt = fmtShort(m.kickoff);
+              res = L.cScheduled;
+            } else {
+              gf += myScore;
+              ga += opScore;
+              if (myScore > opScore) {
+                w++;
+                res = L.cResW;
+                cls = "win";
+              } else if (myScore < opScore) {
+                l++;
+                res = L.cResL;
+                cls = "loss";
+              } else {
+                d++;
+                res = L.cResD;
+                cls = "draw";
+              }
+              scoreTxt = `${myScore} - ${opScore}`;
+            }
+            return `<div class="krow ${cls}"><span class="kopp">${flagInline(opp)}<span>${esc(displayName(opp))}</span></span><span class="ksc">${esc(scoreTxt)}</span><span class="kres">${esc(res)}</span></div>`;
+          })
+          .join("");
+        const summary = `<div class="ksum"><strong>${esc(displayName(nat))}</strong> · ${w}${esc(L.cW)} ${d}${esc(L.cD)} ${l}${esc(L.cL)} · ${gf}${esc(L.cGF)} ${ga}${esc(L.cGA)}</div>`;
+        return summary + `<div class="krows">${rows}</div>`;
+      }
+
+      // 4) 득점 vs 도움 산점도
+      function chartScatter() {
+        const L = t(),
+          pts = (state.points || []).filter((p) => (p.goals || 0) + (p.assists || 0) > 0);
+        if (!pts.length) return emptyChart();
+        const W = 700,
+          H = 340,
+          padL = 40,
+          padR = 18,
+          padT = 16,
+          padB = 42;
+        const pw = W - padL - padR,
+          ph = H - padT - padB;
+        const maxG = Math.max(...pts.map((p) => p.goals || 0), 3),
+          maxA = Math.max(...pts.map((p) => p.assists || 0), 3);
+        const sx = (g) => padL + (g / maxG) * pw,
+          sy = (a) => padT + ph - (a / maxA) * ph;
+        let g = "";
+        const stepG = Math.max(1, Math.ceil(maxG / 5)),
+          stepA = Math.max(1, Math.ceil(maxA / 4));
+        for (let v = 0; v <= maxG; v += stepG) {
+          const x = sx(v);
+          g += `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${padT + ph}" stroke="${CC.grid}"/><text x="${x.toFixed(1)}" y="${(padT + ph + 20).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle">${v}</text>`;
+        }
+        for (let v = 0; v <= maxA; v += stepA) {
+          const y = sy(v);
+          g += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL + pw}" y2="${y.toFixed(1)}" stroke="${CC.grid}"/><text x="${(padL - 8).toFixed(1)}" y="${(y + 4).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="end">${v}</text>`;
+        }
+        g += `<text x="${(padL + pw / 2).toFixed(1)}" y="${(H - 5).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle">${esc(L.cAxisGoals)}</text>`;
+        g += `<text x="13" y="${(padT + ph / 2).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle" transform="rotate(-90 13 ${(padT + ph / 2).toFixed(1)})">${esc(L.cAxisAssists)}</text>`;
+        const sorted = pts.slice().sort((a, b) => (b.goals || 0) + (b.assists || 0) - ((a.goals || 0) + (a.assists || 0)));
+        const labelSet = new Set(sorted.slice(0, 4));
+        pts.forEach((p) => {
+          const nat = nationByName(p.team),
+            focus = nat && matchesNation(nat, currentNation());
+          const x = sx(p.goals || 0),
+            y = sy(p.assists || 0);
+          g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${focus ? 7 : 5.5}" fill="${focus ? CC.gold : CC.blue}" fill-opacity="${focus ? 0.95 : 0.7}" stroke="#0a0f1e" stroke-width="1"/>`;
+          if (labelSet.has(p) || focus)
+            g += `<text x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}" fill="${CC.text}" font-size="12" font-weight="600">${esc(displayPlayer(p.name))}</text>`;
+        });
+        return svgWrap(W, H, g, L.cScatter);
+      }
+
+      function renderChart() {
+        const el = document.getElementById("chartArea");
+        if (!el) return;
+        const tab = state.chartTab || "timing";
+        const map = {
+          timing: ["cTabTiming", chartTiming],
+          teams: ["cTabTeams", chartTeams],
+          korea: ["cTabKorea", chartKorea],
+          scatter: ["cTabScatter", chartScatter],
+        };
+        Object.keys(map).forEach((key) => {
+          const btn = document.getElementById(map[key][0]);
+          if (btn) {
+            const on = key === tab;
+            btn.classList.toggle("on", on);
+            btn.setAttribute("aria-pressed", on ? "true" : "false");
+          }
+        });
+        try {
+          el.innerHTML = (map[tab] || map.timing)[1]();
+        } catch (e) {
+          el.innerHTML = emptyChart();
+        }
+      }
+      function initChartTabs() {
+        const ids = { cTabTiming: "timing", cTabTeams: "teams", cTabKorea: "korea", cTabScatter: "scatter" };
+        Object.keys(ids).forEach((id) => {
+          const b = document.getElementById(id);
+          if (b)
+            b.onclick = () => {
+              state.chartTab = ids[id];
+              renderChart();
+            };
+        });
       }
       function renderStadiums() {
         const L = t(),
@@ -2997,6 +3445,7 @@
       };
       initAdmin();
       initContact();
+      initChartTabs();
       renderStatus();
       loadAll()
         .catch(applyDemo)
