@@ -16,7 +16,6 @@
 
 const API_BASE = "https://worldcup26.ir";
 const ROUTES = { games: 30, groups: 60, teams: 86400, stadiums: 86400 };
-const WARM = ["games", "groups"];
 const KV_KEYS = { players: "admin:players", broadcast: "admin:broadcast", countries: "admin:countries", venues: "admin:venues" };
 
 // ---- Highlightly (도움/공격포인트 소스) ----
@@ -85,33 +84,27 @@ export default {
       return json({ error: "method not allowed" }, 405);
     }
 
-    // ---- 공개 프록시 ----
+    // ---- 공개 프록시 (Cache API 사용: KV 읽기/쓰기 한도 미소모) ----
     const ttl = ROUTES[endpoint];
     if (ttl === undefined) return json({ error: "Unknown endpoint", code: 404 }, 404);
-    if (env.CACHE) {
-      const hit = await env.CACHE.get(endpoint);
-      if (hit) return raw(hit, 200, { "X-Cache": "HIT" });
-    }
+    const cache = caches.default;
+    const cacheKey = new Request(url.origin + url.pathname, { method: "GET" }); // 자기 도메인 키(안전)
+    const hit = await cache.match(cacheKey);
+    if (hit) return hit; // 엣지 캐시 적중
     try {
       const res = await fetch(`${API_BASE}/get/${endpoint}`, { headers: { Accept: "application/json" } });
       const text = await res.text();
       if (!res.ok) return json({ error: "Upstream " + res.status, code: res.status }, 502);
-      if (env.CACHE) ctx.waitUntil(env.CACHE.put(endpoint, text, { expirationTtl: Math.max(ttl, 60) }));
-      return raw(text, 200, { "X-Cache": "MISS" });
+      const out = raw(text, 200, { "Cache-Control": `public, max-age=${Math.max(ttl, 30)}`, "X-Cache": "MISS" });
+      ctx.waitUntil(cache.put(cacheKey, out.clone())); // Cache-Control 의 max-age 만큼만 보관
+      return out;
     } catch (e) {
       return json({ error: "Upstream fetch failed", code: 502 }, 502);
     }
   },
 
   async scheduled(event, env, ctx) {
-    const jobs = WARM.map(async (endpoint) => {
-      try {
-        const res = await fetch(`${API_BASE}/get/${endpoint}`, { headers: { Accept: "application/json" } });
-        const text = await res.text();
-        if (res.ok && env.CACHE) await env.CACHE.put(endpoint, text, { expirationTtl: 120 });
-      } catch (_) {}
-    });
-    ctx.waitUntil(Promise.all(jobs));
+    // 데이터 캐시는 이제 Cache API(요청 시 자동 캐싱)가 담당 → 크론에서 KV 쓰기 없음
     ctx.waitUntil(syncHighlightly(env).catch(() => {}));
   },
 };
@@ -141,9 +134,11 @@ async function syncHighlightly(env) {
   if (now - last < HL_SYNC_MS) return; // 간격 게이트
 
   // worldcup26(무료)로 종료/라이브 경기를 먼저 파악 → 없으면 Highlightly 호출 0
+  // (games 는 더 이상 KV에 없으므로 18분에 1번 원본에서 직접 받음 = 하루 최대 ~80회, 무시 가능)
   let games = [];
   try {
-    games = JSON.parse((await env.CACHE.get("games")) || "{}").games || [];
+    const r = await fetch(`${API_BASE}/get/games`, { headers: { Accept: "application/json" } });
+    if (r.ok) games = JSON.parse(await r.text()).games || [];
   } catch (_) {}
   const statusOf = (g) => {
     const te = String((g && g.time_elapsed) || "").toLowerCase();
