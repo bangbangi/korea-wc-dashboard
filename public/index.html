@@ -1811,12 +1811,14 @@
         return s
           .split(",")
           .map((tok) => {
-            let x = tok
+            let raw = tok
               .trim()
               .replace(/^'+|'+$/g, "")
               .trim();
+            if (/\(\s*o\.?\s*g\.?\s*\)|\bown\s*goal\b/i.test(raw)) return ""; // 자책골(OG)은 득점왕 집계 제외 (페널티는 유지)
+            let x = raw;
             x = x.replace(/\s+\d[\d'+]*\s*(\([^)]*\))?\s*$/, "").trim(); // 분/추가시간 제거 (45', 45'+5, 90+3')
-            x = x.replace(/\s*\([^)]*\)\s*$/, "").trim(); // 끝의 (pen)/(og) 등 제거
+            x = x.replace(/\s*\([^)]*\)\s*$/, "").trim(); // 끝의 (pen) 등 제거
             return x;
           })
           .filter(Boolean);
