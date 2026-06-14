@@ -75,8 +75,19 @@ export default {
         } else {
           // players / countries / venues : 이름 키 기반 한글 오버라이드
           if (body.remove) delete cur[normName(body.remove)];
-          else if (body.name && body.ko) cur[normName(body.name)] = String(body.ko);
-          else return json({ error: "need {name, ko} or {remove}" }, 400);
+          else if (body.bulk && typeof body.bulk === "object") {
+            let n = 0;
+            for (const k in body.bulk) {
+              const ko = String(body.bulk[k] || "").trim(),
+                nk = normName(k);
+              if (nk && ko) {
+                cur[nk] = ko;
+                n++;
+              }
+            }
+            if (!n) return json({ error: "empty bulk" }, 400);
+          } else if (body.name && body.ko) cur[normName(body.name)] = String(body.ko);
+          else return json({ error: "need {name, ko} or {bulk} or {remove}" }, 400);
         }
         if (env.CACHE) await env.CACHE.put(kvKey, JSON.stringify(cur));
         return json({ ok: true, data: cur });
