@@ -629,6 +629,21 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        min-width: 0;
+      }
+      td .tm span {
+        word-break: keep-all; /* 한글 이름은 음절 중간이 아니라 띄어쓰기에서만 줄바꿈 */
+        overflow-wrap: normal;
+      }
+      td.muted,
+      td.goals {
+        width: 1%; /* 국가·기록 칸은 내용만큼만 → 이름 칸이 최대 폭 확보 */
+      }
+      td.muted {
+        word-break: keep-all; /* 긴 국가명도 음절 중간 금지 */
+      }
+      td.goals {
+        white-space: nowrap;
       }
       .fl-img {
         height: 1.05em;
@@ -1677,7 +1692,10 @@
       }
       function displayCountry(name) {
         if (state.lang !== "ko") return name;
-        return COUNTRY_OVR[normName(name)] || TEAM_DB[normName(name)] || KO_HOST[name] || name;
+        const direct = COUNTRY_OVR[normName(name)] || TEAM_DB[normName(name)] || KO_HOST[name];
+        if (direct) return direct;
+        const nat = nationByName(name); // 별칭/코드까지 활용해 한 번 더 매칭 (예: South Korea → 대한민국)
+        return nat ? displayName(nat) : name;
       }
       const STADIUM_KO_RAW = {
         "Lumen Field": "루멘 필드",
