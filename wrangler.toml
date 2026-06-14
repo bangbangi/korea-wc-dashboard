@@ -1,0 +1,21 @@
+name = "korea-wc-dashboard"
+main = "src/worker.js"
+compatibility_date = "2025-06-01"
+
+# 정적 프론트엔드(public/index.html)를 워커와 같은 도메인에서 서빙
+# -> 같은 출처라서 CORS 문제 없음
+[assets]
+directory = "./public"
+
+# API 응답 캐시용 KV. 아래 id는 네임스페이스 만든 뒤 채워넣으세요:
+#   wrangler kv namespace create CACHE
+[[kv_namespaces]]
+binding = "CACHE"
+id = "45402a4dde984d699a47211195dbd5c8"
+
+# 아무도 안 봐도 매분 인기 데이터를 미리 받아 캐시에 채워둠(쿼터 절약 + 즉시 응답)
+[triggers]
+crons = ["*/1 * * * *"]
+
+# WORLDCUP_API_KEY 는 코드/설정에 절대 넣지 말고 secret 으로:
+#   wrangler secret put WORLDCUP_API_KEY

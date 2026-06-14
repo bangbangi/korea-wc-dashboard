@@ -1,0 +1,3 @@
+# 로컬 미리보기(`npm run dev`)용 — 이 파일을 복사해서 `.dev.vars` 로 만들고 키를 넣으세요.
+# (.dev.vars 는 git에 올라가지 않음)
+WORLDCUP_API_KEY=여기에_worldcupapi_키

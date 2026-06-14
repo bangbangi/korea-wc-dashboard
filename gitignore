@@ -1,0 +1,16 @@
+# 의존성
+node_modules/
+
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# 로컬 / OS / 에디터
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+dist/

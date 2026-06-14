@@ -1,0 +1,14 @@
+{
+  "name": "korea-wc-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "국가별 FIFA 월드컵 2026 실시간 대시보드 (Cloudflare Worker + 정적 SPA)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
