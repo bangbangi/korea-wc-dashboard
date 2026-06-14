@@ -1328,13 +1328,6 @@
         </div>
         <div class="card">
           <h2>
-            <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_stadiums">개최 경기장</span>
-            <span class="sub" id="stadSub"></span>
-          </h2>
-          <div id="stadiums"></div>
-        </div>
-        <div class="card">
-          <h2>
             <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_charts">통계 · 차트</span>
           </h2>
           <div class="aptabs ctabs" role="group" aria-label="차트 보기 선택">
@@ -1344,6 +1337,13 @@
             ><button id="cTabScatter" class="aptab" type="button" aria-pressed="false">득점 vs 도움</button>
           </div>
           <div id="chartArea"></div>
+        </div>
+        <div class="card">
+          <h2>
+            <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_stadiums">개최 경기장</span>
+            <span class="sub" id="stadSub"></span>
+          </h2>
+          <div id="stadiums"></div>
         </div>
       </div>
 
@@ -2759,16 +2759,51 @@
         }
         g += `<text x="${(padL + pw / 2).toFixed(1)}" y="${(H - 5).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle">${esc(L.cAxisGoals)}</text>`;
         g += `<text x="13" y="${(padT + ph / 2).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle" transform="rotate(-90 13 ${(padT + ph / 2).toFixed(1)})">${esc(L.cAxisAssists)}</text>`;
-        const sorted = pts.slice().sort((a, b) => (b.goals || 0) + (b.assists || 0) - ((a.goals || 0) + (a.assists || 0)));
-        const labelSet = new Set(sorted.slice(0, 4));
+        // 같은 (골,도움) 좌표 선수들이 한 점에 겹치므로 살짝 분산시키고, 라벨은 충돌 시 생략
+        const focusOf = new Map();
         pts.forEach((p) => {
-          const nat = nationByName(p.team),
-            focus = nat && matchesNation(nat, currentNation());
-          const x = sx(p.goals || 0),
-            y = sy(p.assists || 0);
-          g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${focus ? 7 : 5.5}" fill="${focus ? CC.gold : CC.blue}" fill-opacity="${focus ? 0.95 : 0.7}" stroke="#0a0f1e" stroke-width="1"/>`;
-          if (labelSet.has(p) || focus)
-            g += `<text x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}" fill="${CC.text}" font-size="12" font-weight="600">${esc(displayPlayer(p.name))}</text>`;
+          const nat = nationByName(p.team);
+          focusOf.set(p, !!(nat && matchesNation(nat, currentNation())));
+        });
+        const cells = {};
+        pts.forEach((p) => {
+          const k = (p.goals || 0) + "," + (p.assists || 0);
+          (cells[k] = cells[k] || []).push(p);
+        });
+        const posOf = new Map();
+        Object.keys(cells).forEach((k) => {
+          const arr = cells[k],
+            cnt = arr.length;
+          arr.forEach((p, i) => {
+            let ox = 0,
+              oy = 0;
+            if (cnt > 1) {
+              const ang = (i / cnt) * Math.PI * 2;
+              const rad = Math.min(16, 6 + cnt * 1.6);
+              ox = Math.cos(ang) * rad;
+              oy = Math.sin(ang) * rad;
+            }
+            posOf.set(p, { x: sx(p.goals || 0) + ox, y: sy(p.assists || 0) + oy });
+          });
+        });
+        pts.forEach((p) => {
+          const pos = posOf.get(p),
+            focus = focusOf.get(p);
+          g += `<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="${focus ? 6.5 : 5}" fill="${focus ? CC.gold : CC.blue}" fill-opacity="${focus ? 0.95 : 0.62}" stroke="#0a0f1e" stroke-width="1"/>`;
+        });
+        // 라벨: 포커스 국가 → 공격포인트 높은 순. 이미 찍은 라벨과 겹치면 건너뜀(최대 8개)
+        const order = pts
+          .slice()
+          .sort((a, b) => focusOf.get(b) - focusOf.get(a) || (b.goals || 0) + (b.assists || 0) - ((a.goals || 0) + (a.assists || 0)));
+        const placed = [];
+        order.forEach((p) => {
+          if (placed.length >= 8) return;
+          const pos = posOf.get(p),
+            lx = pos.x + 9,
+            ly = pos.y + 4;
+          if (placed.some((q) => Math.abs(q.y - ly) < 13 && Math.abs(q.x - lx) < 72)) return;
+          placed.push({ x: lx, y: ly });
+          g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${CC.text}" font-size="12" font-weight="600">${esc(displayPlayer(p.name))}</text>`;
         });
         return svgWrap(W, H, g, L.cScatter);
       }
