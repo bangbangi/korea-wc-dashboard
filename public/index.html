@@ -27,6 +27,9 @@
     <meta name="twitter:description" content="전 세계 48개국 FIFA 월드컵 2026 경기·순위·득점을 실시간으로." />
     <meta name="twitter:image" content="https://worldcup.bangbangi.com/og-image.png" />
 
+    <!-- ===================================================================
+     Google 연동 (형 실제 ID 그대로 보존)
+     =================================================================== -->
     <!-- 1) Search Console 소유권 확인 -->
     <meta name="google-site-verification" content="35wt1tNv02JLeAgjGZ6-L7olmwJjWJ5F1RLPW9Z8-78" />
     <meta name="naver-site-verification" content="ad0e80a645e5574cd28a835753d5af96436cb35a" />
@@ -1065,6 +1068,25 @@
         background: var(--live);
         animation: blink 1.1s steps(1) infinite;
       }
+      .todaybar .chip .cgrp {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--gold);
+        background: rgba(233, 185, 74, 0.14);
+        border-radius: 5px;
+        padding: 1px 5px;
+        letter-spacing: 0.2px;
+      }
+      .todaybar .tlabel .tznote {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+        padding: 1px 4px;
+        margin-left: 5px;
+        vertical-align: middle;
+      }
 
       /* 중계 버튼 */
       .bcast {
@@ -1880,10 +1902,36 @@ Giovanni Reyna = 지오반니 레이나"
         const t = state.teamsById[id] || {};
         return { id, name: t.name || nameEn || "—", code: t.code || "", flag: t.flag || "", iso2: t.iso2 || "", score: numOrNull(score) };
       }
-      function parseLocalDate(s) {
+      // 경기장별 UTC 오프셋(시간). 2026 6~7월: 미국·캐나다 서머타임, 멕시코는 DST 없음.
+      // 동부(EDT,-4) / 중부(CDT,-5) / 태평양(PDT,-7) / 멕시코(-6)
+      const STADIUM_UTC_OFF = {
+        1: -6,
+        2: -6,
+        3: -6, // 멕시코시티, 과달라하라, 몬테레이
+        4: -5,
+        5: -5,
+        6: -5, // 댈러스, 휴스턴, 캔자스시티
+        7: -4,
+        8: -4,
+        9: -4,
+        10: -4,
+        11: -4,
+        12: -4, // 애틀랜타, 마이애미, 보스턴, 필라델피아, 뉴욕(NJ), 토론토
+        13: -7,
+        14: -7,
+        15: -7,
+        16: -7, // 밴쿠버, 시애틀, 샌프란시스코, LA
+      };
+      const DEFAULT_UTC_OFF = -5;
+      function parseLocalDate(s, stadiumId) {
         if (!s) return "";
         const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
-        if (m) return new Date(+m[3], +m[1] - 1, +m[2], +m[4], +m[5]).toISOString();
+        if (m) {
+          // local_date는 개최지 현지시각 → 경기장 오프셋으로 진짜 UTC 산출 (이후 표시는 보는 사람 시간대 = 한국은 KST)
+          const off = stadiumId != null && STADIUM_UTC_OFF[String(stadiumId)] != null ? STADIUM_UTC_OFF[String(stadiumId)] : DEFAULT_UTC_OFF;
+          const utcMs = Date.UTC(+m[3], +m[1] - 1, +m[2], +m[4], +m[5]) - off * 3600 * 1000;
+          return new Date(utcMs).toISOString();
+        }
         const d = Date.parse(s);
         return Number.isFinite(d) ? new Date(d).toISOString() : "";
       }
@@ -1950,7 +1998,7 @@ Giovanni Reyna = 지오반니 레이나"
           id: g.id,
           status,
           minute,
-          kickoff: parseLocalDate(g.local_date),
+          kickoff: parseLocalDate(g.local_date, g.stadium_id),
           venue: stadiumName(g.stadium_id),
           group: g.group,
           home,
@@ -2798,6 +2846,16 @@ Giovanni Reyna = 지오반니 레이나"
           ? ""
           : d.toLocaleDateString(state.lang === "ko" ? "ko-KR" : "en-US", { month: "numeric", day: "numeric" }) + "<br>" + fmtShort(s);
       }
+      // 보는 사람의 현지 시간대 표기 (예: GMT+9, EDT)
+      function localTzLabel() {
+        try {
+          const parts = new Intl.DateTimeFormat(state.lang === "ko" ? "ko-KR" : "en-US", { timeZoneName: "short" }).formatToParts(new Date());
+          const tz = parts.find((p) => p.type === "timeZoneName");
+          return tz ? tz.value : "";
+        } catch (_) {
+          return "";
+        }
+      }
 
       /* ========================= 데모 ========================= */
       const DEMO_GROUPS = {
@@ -3046,10 +3104,12 @@ Giovanni Reyna = 지오반니 레이나"
                 ? `<strong class="sc ${live ? "lv" : ""}">${m.home.score ?? 0}-${m.away.score ?? 0}</strong>`
                 : `<strong class="tm">${fmtShort(m.kickoff)}</strong>`;
             const hk = (m.home.code || m.home.name || "").toUpperCase();
-            return `<button class="chip ${matchHasFocus(m) ? "on" : ""}" data-key="${esc(hk)}">${live ? '<span class="lvdot"></span>' : ""}<span>${esc(displayName(m.home))}</span>${mid}<span>${esc(displayName(m.away))}</span></button>`;
+            const grp = m.group ? `<span class="cgrp">${esc(m.group)}${state.lang === "ko" ? "조" : ""}</span>` : "";
+            return `<button class="chip ${matchHasFocus(m) ? "on" : ""}" data-key="${esc(hk)}">${live ? '<span class="lvdot"></span>' : ""}${grp}<span>${esc(displayName(m.home))}</span>${mid}<span>${esc(displayName(m.away))}</span></button>`;
           })
           .join("");
-        el.innerHTML = `<span class="tlabel">${state.lang === "ko" ? "오늘의 경기" : "Today"}</span><div class="chips">${chips}</div>`;
+        const _tz = localTzLabel();
+        el.innerHTML = `<span class="tlabel">${state.lang === "ko" ? "오늘의 경기" : "Today"}${_tz ? `<span class="tznote">${esc(_tz)}</span>` : ""}</span><div class="chips">${chips}</div>`;
         el.querySelectorAll(".chip").forEach(
           (c) =>
             (c.onclick = () => {
