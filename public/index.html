@@ -1538,6 +1538,7 @@ Giovanni Reyna = 지오반니 레이나"
       const CONFIG = {
         API: "/api",
         REFRESH_MS: 20000,
+        LIVE_REFRESH_MS: 12000,
         DEFAULT_FOCUS: ["kor", "korea", "south korea", "대한민국"],
         DEFAULT_LANG: "ko", // 첫 진입 언어 (ko | en)
       };
@@ -1658,8 +1659,10 @@ Giovanni Reyna = 지오반니 레이나"
       const t = () => UI[state.lang];
 
       /* ========================= API ========================= */
-      async function api(endpoint) {
-        const res = await fetch(CONFIG.API + "/" + endpoint, { headers: { Accept: "application/json" } });
+      async function api(endpoint, fresh) {
+        const opts = { headers: { Accept: "application/json" } };
+        if (fresh) opts.cache = "no-store"; // 실시간 데이터는 브라우저 캐시 우회 → 폴링 때마다 최신 반영
+        const res = await fetch(CONFIG.API + "/" + endpoint, opts);
         if (!res.ok) throw new Error("http " + res.status);
         return res.json();
       }
@@ -2166,7 +2169,7 @@ Giovanni Reyna = 지오반니 레이나"
       };
 
       async function loadAll() {
-        const [tm, g, gr, s] = await Promise.allSettled([api("teams"), api("games"), api("groups"), api("stadiums")]);
+        const [tm, g, gr, s] = await Promise.allSettled([api("teams"), api("games", true), api("groups", true), api("stadiums")]);
         if (tm.status === "rejected" && g.status === "rejected" && gr.status === "rejected") {
           applyDemo();
           return;
@@ -3525,8 +3528,20 @@ Giovanni Reyna = 지오반니 레이나"
           loadPlayersKo();
           loadPoints();
           autoLangByGeo();
+          scheduleNext(); // 초기 로드 완료 후 시작 → 첫 폴링부터 라이브 주기 반영
         });
-      setInterval(() => loadAll().catch(() => {}), CONFIG.REFRESH_MS);
+      // 자동 갱신: 라이브 경기가 있으면 더 자주, 평소엔 덜 자주 (브라우저 캐시 우회로 새로고침 없이 점수 반영)
+      function scheduleNext() {
+        const live = (state.liveMatches || []).length > 0;
+        const ms = live ? CONFIG.LIVE_REFRESH_MS : CONFIG.REFRESH_MS;
+        const note = document.getElementById("refreshNote");
+        if (note) note.textContent = t().refresh(Math.round(ms / 1000));
+        clearTimeout(scheduleNext._t);
+        scheduleNext._t = setTimeout(async () => {
+          await loadAll().catch(() => {});
+          scheduleNext();
+        }, ms);
+      }
       setInterval(() => loadPoints().catch(() => {}), 60000);
       setInterval(tick, 1000);
       // 접근성: role="button" 요소를 키보드(Enter/Space)로도 실행

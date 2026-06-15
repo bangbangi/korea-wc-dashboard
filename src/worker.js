@@ -15,7 +15,7 @@
  */
 
 const API_BASE = "https://worldcup26.ir";
-const ROUTES = { games: 30, groups: 60, teams: 86400, stadiums: 86400 };
+const ROUTES = { games: 15, groups: 60, teams: 86400, stadiums: 86400 };
 const KV_KEYS = { players: "admin:players", broadcast: "admin:broadcast", countries: "admin:countries", venues: "admin:venues" };
 
 // ---- Highlightly (도움/공격포인트 소스) ----
@@ -106,7 +106,7 @@ export default {
       const res = await fetch(`${API_BASE}/get/${endpoint}`, { headers: { Accept: "application/json" } });
       const text = await res.text();
       if (!res.ok) return json({ error: "Upstream " + res.status, code: res.status }, 502);
-      const out = raw(text, 200, { "Cache-Control": `public, max-age=${Math.max(ttl, 30)}`, "X-Cache": "MISS" });
+      const out = raw(text, 200, { "Cache-Control": `public, max-age=${Math.max(ttl, 10)}`, "X-Cache": "MISS" });
       ctx.waitUntil(cache.put(cacheKey, out.clone())); // Cache-Control 의 max-age 만큼만 보관
       return out;
     } catch (e) {
