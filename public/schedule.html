@@ -8,6 +8,10 @@
       name="description"
       content="2026 FIFA 월드컵 전체 경기 일정과 결과를 날짜별 · 조별로 정리했습니다. 접속 지역 현지 시간으로 표시되고 실시간 결과가 반영됩니다."
     />
+    <meta
+      name="keywords"
+      content="월드컵 2026 일정, FIFA 월드컵 일정, 2026 월드컵 경기 일정, 월드컵 조별 일정, 월드컵 전체 경기, 월드컵 결과, World Cup 2026 schedule, World Cup fixtures"
+    />
     <link rel="canonical" href="https://worldcup.bangbangi.com/schedule" />
     <meta property="og:title" content="월드컵 2026 전체 일정 · 결과" />
     <meta property="og:description" content="날짜별 · 조별 전체 경기 일정과 결과 (현지 시간 · 실시간)" />
@@ -355,6 +359,36 @@
         $("tznote").textContent = tzLabel();
         renderFilters();
         render();
+        injectJsonLd();
+      }
+
+      // 경기 목록을 구조화 데이터(JSON-LD)로 노출 → AI 답변엔진/검색엔진이 일정을 이해·인용 (GEO)
+      function injectJsonLd() {
+        try {
+          const events = MATCHES.filter((m) => m.home.ko !== "미정" && m.away.ko !== "미정").map((m) => ({
+            "@type": "SportsEvent",
+            name: m.home.ko + " vs " + m.away.ko,
+            sport: "Football",
+            startDate: m.iso,
+            competitor: [
+              { "@type": "SportsTeam", name: m.home.ko },
+              { "@type": "SportsTeam", name: m.away.ko },
+            ],
+            superEvent: { "@type": "SportsEvent", name: "2026 FIFA 월드컵" },
+          }));
+          if (!events.length) return;
+          const data = {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "2026 FIFA 월드컵 전체 경기 일정",
+            numberOfItems: events.length,
+            itemListElement: events.map((e, i) => ({ "@type": "ListItem", position: i + 1, item: e })),
+          };
+          const s = document.createElement("script");
+          s.type = "application/ld+json";
+          s.textContent = JSON.stringify(data);
+          document.head.appendChild(s);
+        } catch (_) {}
       }
 
       function renderFilters() {
