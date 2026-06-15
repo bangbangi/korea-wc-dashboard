@@ -2757,7 +2757,7 @@ Giovanni Reyna = 지오반니 레이나"
         }
         g += `<text x="${(padL + pw / 2).toFixed(1)}" y="${(H - 5).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle">${esc(L.cAxisGoals)}</text>`;
         g += `<text x="13" y="${(padT + ph / 2).toFixed(1)}" fill="${CC.muted}" font-size="12" text-anchor="middle" transform="rotate(-90 13 ${(padT + ph / 2).toFixed(1)})">${esc(L.cAxisAssists)}</text>`;
-        // 같은 (골,도움) 좌표 선수들이 한 점에 겹치므로 살짝 분산시키고, 라벨은 충돌 시 생략
+        // 같은 (골,도움)에 여러 명이 몰리면 점이 겹쳐 코일처럼 보임 → 칸별 버블 1개(인원수)로 합치고, 포커스 국가 선수는 골드 점으로 표시
         const focusOf = new Map();
         pts.forEach((p) => {
           const nat = nationByName(p.team);
@@ -2768,41 +2768,44 @@ Giovanni Reyna = 지오반니 레이나"
           const k = (p.goals || 0) + "," + (p.assists || 0);
           (cells[k] = cells[k] || []).push(p);
         });
-        const posOf = new Map();
-        Object.keys(cells).forEach((k) => {
-          const arr = cells[k],
-            cnt = arr.length;
-          arr.forEach((p, i) => {
-            let ox = 0,
-              oy = 0;
-            if (cnt > 1) {
-              const ang = (i / cnt) * Math.PI * 2;
-              const rad = Math.min(16, 6 + cnt * 1.6);
-              ox = Math.cos(ang) * rad;
-              oy = Math.sin(ang) * rad;
+        const rOf = (n) => Math.max(5, Math.min(17, 5 + 2.3 * Math.sqrt(n)));
+        const labelCands = [];
+        // 큰 버블부터 그려서 작은 점이 위로 오게
+        Object.keys(cells)
+          .map((k) => {
+            const arr = cells[k];
+            const parts = k.split(",");
+            return { x: sx(+parts[0]), y: sy(+parts[1]), arr, n: arr.length, ga: +parts[0] + +parts[1] };
+          })
+          .sort((a, b) => b.n - a.n)
+          .forEach((c) => {
+            const r = rOf(c.n);
+            const focusP = c.arr.find((p) => focusOf.get(p));
+            g += `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${CC.blue}" fill-opacity="${c.n > 1 ? 0.5 : 0.62}" stroke="#0a0f1e" stroke-width="1"/>`;
+            if (c.n >= 2)
+              g += `<text x="${c.x.toFixed(1)}" y="${(c.y + 4).toFixed(1)}" fill="#eaf0ff" font-size="11.5" font-weight="800" text-anchor="middle">${c.n}</text>`;
+            if (focusP) {
+              // 포커스 국가 선수 표시(골드 점)
+              const gx = c.x + r * 0.72,
+                gy = c.y - r * 0.72;
+              g += `<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="5" fill="${CC.gold}" stroke="#0a0f1e" stroke-width="1.2"/>`;
+              labelCands.push({ x: gx, y: gy, r: 5, name: focusP.name, ga: c.ga, focus: true });
+            } else if (c.n === 1) {
+              labelCands.push({ x: c.x, y: c.y, r, name: c.arr[0].name, ga: c.ga, focus: false });
             }
-            posOf.set(p, { x: sx(p.goals || 0) + ox, y: sy(p.assists || 0) + oy });
           });
-        });
-        pts.forEach((p) => {
-          const pos = posOf.get(p),
-            focus = focusOf.get(p);
-          g += `<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="${focus ? 6.5 : 5}" fill="${focus ? CC.gold : CC.blue}" fill-opacity="${focus ? 0.95 : 0.62}" stroke="#0a0f1e" stroke-width="1"/>`;
-        });
-        // 라벨: 포커스 국가 → 공격포인트 높은 순. 이미 찍은 라벨과 겹치면 건너뜀(최대 8개)
-        const order = pts
-          .slice()
-          .sort((a, b) => focusOf.get(b) - focusOf.get(a) || (b.goals || 0) + (b.assists || 0) - ((a.goals || 0) + (a.assists || 0)));
+        // 라벨: 포커스 우선 → 공격포인트 높은 순, 겹치면 생략(최대 8개)
         const placed = [];
-        order.forEach((p) => {
-          if (placed.length >= 8) return;
-          const pos = posOf.get(p),
-            lx = pos.x + 9,
-            ly = pos.y + 4;
-          if (placed.some((q) => Math.abs(q.y - ly) < 13 && Math.abs(q.x - lx) < 72)) return;
-          placed.push({ x: lx, y: ly });
-          g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${CC.text}" font-size="12" font-weight="600">${esc(displayPlayer(p.name))}</text>`;
-        });
+        labelCands
+          .sort((a, b) => b.focus - a.focus || b.ga - a.ga)
+          .forEach((c) => {
+            if (placed.length >= 8) return;
+            const lx = c.x + c.r + 4,
+              ly = c.y + 4;
+            if (placed.some((q) => Math.abs(q.y - ly) < 13 && Math.abs(q.x - lx) < 80)) return;
+            placed.push({ x: lx, y: ly });
+            g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${CC.text}" font-size="12" font-weight="600">${esc(displayPlayer(c.name))}</text>`;
+          });
         return svgWrap(W, H, g, L.cScatter);
       }
 
