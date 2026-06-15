@@ -680,13 +680,42 @@
       .fx:last-child {
         border-bottom: 0;
       }
+      .fxday {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--gold);
+        padding: 12px 2px 5px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 2px;
+      }
       .fx .when {
         font-family: var(--font-mono);
         font-size: 11px;
         color: var(--muted);
-        width: 62px;
+        width: 68px;
         flex: none;
-        line-height: 1.35;
+        line-height: 1.5;
+      }
+      .fx .when .fxgrp {
+        display: inline-block;
+        font-family: inherit;
+        font-size: 9.5px;
+        font-weight: 700;
+        color: var(--gold);
+        background: rgba(233, 185, 74, 0.14);
+        border-radius: 4px;
+        padding: 0 4px;
+      }
+      .morelink {
+        display: inline-block;
+        margin: 12px 2px 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--blue);
+        text-decoration: none;
+      }
+      .morelink:hover {
+        text-decoration: underline;
       }
       .fx .pair {
         display: flex;
@@ -1368,13 +1397,15 @@
           </div>
           <div class="card">
             <h2>
-              <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_ap">도움 · 공격포인트</span>
+              <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_assists">도움</span>
             </h2>
-            <div class="aptabs" role="group" aria-label="순위 보기 선택">
-              <button id="apTabA" class="aptab on" type="button" aria-pressed="true">도움</button
-              ><button id="apTabP" class="aptab" type="button" aria-pressed="false">공격포인트</button>
-            </div>
-            <div id="apList"></div>
+            <div id="assistList"></div>
+          </div>
+          <div class="card">
+            <h2>
+              <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_points">공격포인트</span>
+            </h2>
+            <div id="pointList"></div>
           </div>
         </div>
         <div class="card">
@@ -1516,6 +1547,8 @@ Giovanni Reyna = 지오반니 레이나"
           scorers: "득점 순위",
           stadiums: "개최 경기장",
           apTitle: "도움 · 공격포인트",
+          assistsTitle: "도움 순위",
+          pointsTitle: "공격포인트",
           tabAssist: "도움",
           tabPoint: "공격포인트",
           emptyPoints: "아직 집계 데이터가 없어요.",
@@ -1552,6 +1585,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyMatch: "표시할 경기 정보가 없어요.",
           emptyStand: "이 국가의 조 순위 데이터가 아직 없어요.",
           emptyFix: "표시할 일정이 없어요.",
+          allSchedule: "전체 일정·결과 보기",
           emptyScore: "아직 득점 기록이 없어요.",
           emptyStad: "경기장 데이터가 없어요.",
           updated: "갱신",
@@ -1567,6 +1601,8 @@ Giovanni Reyna = 지오반니 레이나"
           scorers: "Top Scorers",
           stadiums: "Stadiums",
           apTitle: "Assists · G+A",
+          assistsTitle: "Assists",
+          pointsTitle: "G + A",
           tabAssist: "Assists",
           tabPoint: "G+A",
           emptyPoints: "No data yet.",
@@ -1603,6 +1639,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyMatch: "No match to show.",
           emptyStand: "No group standings yet.",
           emptyFix: "No fixtures to show.",
+          allSchedule: "Full schedule & results",
           emptyScore: "No goals scored yet.",
           emptyStad: "No stadium data.",
           updated: "Updated",
@@ -2187,7 +2224,7 @@ Giovanni Reyna = 지오반니 레이나"
         const fx = state.allFixtures.filter(matchHasFocus);
         state.fixtures = (fx.length ? fx : state.allFixtures).slice().sort(byKickoff);
         const liveFocus = state.liveMatches.find(matchHasFocus) || state.liveMatches[0];
-        state.match = pickHeroMatch(liveFocus, state.fixtures);
+        state.match = pickHeroMatch();
         const n = currentNation();
         state.focusGroup = (n && n.group) || groupFromStandings(n) || null;
       }
@@ -2196,13 +2233,34 @@ Giovanni Reyna = 지오반니 레이나"
         const r = state.allStandings.find((r) => matchesNation(r, n));
         return r ? r.group : null;
       }
-      function pickHeroMatch(liveFocus, fixtures) {
-        if (liveFocus && matchHasFocus(liveFocus)) return liveFocus; // 포커스한 나라가 라이브면 그 경기를 히어로에
+      function pickHeroMatch() {
         const now = Date.now();
-        const up = fixtures.filter((m) => m.status !== "finished" && kickoffMs(m) >= now - 2 * 3600e3).sort(byKickoff);
-        if (up[0]) return up[0];
-        const done = fixtures.filter((m) => m.status === "finished").sort((a, b) => kickoffMs(b) - kickoffMs(a));
-        return done[0] || fixtures[0] || liveFocus || null;
+        const lives = state.liveMatches || [];
+        const focusFx = state.fixtures || [];
+        const upcoming = (arr) => arr.filter((m) => m.status !== "finished" && kickoffMs(m) >= now - 2 * 3600e3).sort(byKickoff);
+        // 포커스한 나라가 라이브면 항상 그 경기
+        const focusLive = lives.find(matchHasFocus);
+        if (focusLive) return focusLive;
+        // 사용자가 직접 나라를 골랐으면 그 나라 경기 위주
+        if (state.userPicked) {
+          const fu = upcoming(focusFx);
+          if (fu[0]) return fu[0];
+          const fd = focusFx.filter((m) => m.status === "finished").sort((a, b) => kickoffMs(b) - kickoffMs(a));
+          return fd[0] || focusFx[0] || lives[0] || null;
+        }
+        // 기본(자동 포커스): 지금 가장 현실적인 경기를 노출
+        if (lives[0]) return lives[0]; // 1) 진행 중인 경기
+        const isToday = (m) => {
+          const d = new Date(m.kickoff),
+            n = new Date();
+          return !Number.isNaN(+d) && d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+        };
+        const todayUp = upcoming(state.allFixtures || []).filter(isToday);
+        if (todayUp.length) return todayUp.find(matchHasFocus) || todayUp[0]; // 2) 오늘 열리는 경기(포커스 우선, 없으면 가장 빠른 경기)
+        const fu = upcoming(focusFx);
+        if (fu[0]) return fu[0]; // 3) 포커스 나라의 다음 경기(미래 카운트다운)
+        const done = focusFx.filter((m) => m.status === "finished").sort((a, b) => kickoffMs(b) - kickoffMs(a));
+        return done[0] || focusFx[0] || null;
       }
       const kickoffMs = (m) => {
         const x = Date.parse(m.kickoff || "");
@@ -2280,12 +2338,10 @@ Giovanni Reyna = 지오반니 레이나"
         document.getElementById("t_standings").textContent = L.standings;
         document.getElementById("t_fixtures").textContent = L.fixtures;
         document.getElementById("t_scorers").textContent = L.scorers;
-        const ap = document.getElementById("t_ap");
-        if (ap) ap.textContent = L.apTitle;
-        const ta = document.getElementById("apTabA");
-        if (ta) ta.textContent = L.tabAssist;
-        const tp = document.getElementById("apTabP");
-        if (tp) tp.textContent = L.tabPoint;
+        const tas = document.getElementById("t_assists");
+        if (tas) tas.textContent = L.assistsTitle;
+        const tpt = document.getElementById("t_points");
+        if (tpt) tpt.textContent = L.pointsTitle;
         document.getElementById("t_stadiums").textContent = L.stadiums;
         const bs = document.getElementById("brandSub");
         if (bs) bs.textContent = L.sub;
@@ -2396,26 +2452,39 @@ Giovanni Reyna = 지오반니 레이나"
           el = document.getElementById("fixtures"),
           n = currentNation();
         document.getElementById("fixSub").textContent = n ? displayName(n) : "";
+        const link = `<a class="morelink" href="/schedule">${L.allSchedule} →</a>`;
         if (!state.fixtures.length) {
-          el.innerHTML = `<div class="empty">${L.emptyFix}</div>`;
+          el.innerHTML = `<div class="empty">${L.emptyFix}</div>` + link;
           return;
         }
-        el.innerHTML = state.fixtures
-          .slice(0, 10)
-          .map((m) => {
-            const live = m.status === "live",
-              done = m.status === "finished";
-            const res = live
-              ? `<span class="res" style="color:var(--live)">${m.home.score ?? 0}-${m.away.score ?? 0}</span>`
-              : done
-                ? `<span class="res">${m.home.score ?? 0}-${m.away.score ?? 0}</span>`
-                : `<span class="res up">${fmtShort(m.kickoff)}</span>`;
-            return `<div class="fx ${matchHasFocus(m) ? "focus" : ""}">
-      <div class="when">${live ? '<span style="color:var(--live)">● LIVE</span>' : fmtDay(m.kickoff)}</div>
+        const dayKey = (s) => {
+          const d = new Date(s);
+          return Number.isNaN(+d)
+            ? ""
+            : d.toLocaleDateString(state.lang === "ko" ? "ko-KR" : "en-US", { month: "long", day: "numeric", weekday: "short" });
+        };
+        let lastDay = null,
+          html = "";
+        state.fixtures.slice(0, 10).forEach((m) => {
+          const dk = dayKey(m.kickoff);
+          if (dk && dk !== lastDay) {
+            html += `<div class="fxday">${esc(dk)}</div>`;
+            lastDay = dk;
+          }
+          const live = m.status === "live",
+            done = m.status === "finished";
+          const res = live
+            ? `<span class="res" style="color:var(--live)">${m.home.score ?? 0}-${m.away.score ?? 0}</span>`
+            : done
+              ? `<span class="res">${m.home.score ?? 0}-${m.away.score ?? 0}</span>`
+              : `<span class="res up">${fmtShort(m.kickoff)}</span>`;
+          const grp = m.group ? `<span class="fxgrp">${esc(m.group)}${state.lang === "ko" ? "조" : ""}</span>` : "";
+          html += `<div class="fx ${matchHasFocus(m) ? "focus" : ""}">
+      <div class="when">${live ? '<span style="color:var(--live)">● LIVE</span><br>' : ""}${grp}</div>
       <div class="pair">${flagInline(m.home)}<span class="nm">${esc(displayName(m.home))}</span></div>${res}
       <div class="pair r"><span class="nm" style="text-align:right">${esc(displayName(m.away))}</span>${flagInline(m.away)}</div></div>`;
-          })
-          .join("");
+        });
+        el.innerHTML = html + link;
       }
       function renderScorers() {
         const L = t(),
@@ -2448,33 +2517,15 @@ Giovanni Reyna = 지오반니 레이나"
         k = TEAM_ALIAS[k] || k;
         return state.nations.find((n) => normName(n.name) === k) || state.nations.find((n) => normName(displayName(n)) === normName(name)) || null;
       }
-      function renderPoints() {
+      function renderRankList(elId, mode) {
         const L = t(),
-          el = document.getElementById("apList");
+          el = document.getElementById(elId);
         if (!el) return;
-        const assistTab = state.apTab !== "p";
-        const ta = document.getElementById("apTabA"),
-          tp = document.getElementById("apTabP");
-        if (ta) {
-          ta.classList.toggle("on", assistTab);
-          ta.setAttribute("aria-pressed", assistTab ? "true" : "false");
-          ta.onclick = () => {
-            state.apTab = "a";
-            renderPoints();
-          };
-        }
-        if (tp) {
-          tp.classList.toggle("on", !assistTab);
-          tp.setAttribute("aria-pressed", !assistTab ? "true" : "false");
-          tp.onclick = () => {
-            state.apTab = "p";
-            renderPoints();
-          };
-        }
+        const assist = mode === "assist";
         const rows = (state.points || [])
           .slice()
-          .sort(assistTab ? (a, b) => b.assists - a.assists || b.goals - a.goals : (a, b) => b.points - a.points || b.goals - a.goals)
-          .filter((r) => (assistTab ? r.assists > 0 : r.points > 0))
+          .sort(assist ? (a, b) => b.assists - a.assists || b.goals - a.goals : (a, b) => b.points - a.points || b.goals - a.goals)
+          .filter((r) => (assist ? r.assists > 0 : r.points > 0))
           .slice(0, 20);
         if (!rows.length) {
           el.innerHTML = `<div class="empty">${L.emptyPoints}</div>`;
@@ -2487,14 +2538,18 @@ Giovanni Reyna = 지오반니 레이나"
             .map((s, i) => {
               const nat = nationByName(s.team);
               const hl = nat && matchesNation(nat, currentNation());
-              const main = assistTab ? s.assists : s.points;
-              const sub = assistTab ? "" : `<span class="ga">${s.goals}+${s.assists}</span>`;
+              const main = assist ? s.assists : s.points;
+              const sub = assist ? "" : `<span class="ga">${s.goals}+${s.assists}</span>`;
               return `<tr class="${hl ? "focus" : ""}"><td class="rank">${i + 1}</td>
       <td><div class="tm">${nat ? flagInline(nat) : `<span class="fl">🏳️</span>`}<span>${esc(displayPlayer(s.name))}</span></div></td>
       <td class="muted" style="font-size:12px">${esc(displayCountry(s.team))}</td>
       <td class="goals"><em>${main}</em>${sub}</td></tr>`;
             })
             .join("")}</tbody></table>`;
+      }
+      function renderPoints() {
+        renderRankList("assistList", "assist");
+        renderRankList("pointList", "points");
       }
       async function loadPoints() {
         try {
