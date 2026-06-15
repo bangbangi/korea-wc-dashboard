@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /admin
+Disallow: /admin.html
 
 Sitemap: https://worldcup.bangbangi.com/sitemap.xml
