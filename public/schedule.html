@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>월드컵 2026 전체 일정 · 결과 (날짜별 · 조별) | worldcup.bangbangi.com</title>
+    <meta
+      name="description"
+      content="2026 FIFA 월드컵 전체 경기 일정과 결과를 날짜별 · 조별로 정리했습니다. 접속 지역 현지 시간으로 표시되고 실시간 결과가 반영됩니다."
+    />
+    <link rel="canonical" href="https://worldcup.bangbangi.com/schedule" />
+    <meta property="og:title" content="월드컵 2026 전체 일정 · 결과" />
+    <meta property="og:description" content="날짜별 · 조별 전체 경기 일정과 결과 (현지 시간 · 실시간)" />
+    <meta property="og:url" content="https://worldcup.bangbangi.com/schedule" />
+    <meta property="og:image" content="https://worldcup.bangbangi.com/og-image.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #0b1120;
+        --surface: #131c33;
+        --line: rgba(255, 255, 255, 0.09);
+        --text: #edf1f8;
+        --muted: #8b95ad;
+        --blue: #3a74e6;
+        --gold: #e9b94a;
+        --live: #ff3355;
+        --green: #1fbf75;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Pretendard",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          "Noto Sans KR",
+          sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 22px 16px 90px;
+      }
+      header.top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      h1 {
+        font-size: 21px;
+        margin: 0;
+      }
+      a.back {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      a.back:hover {
+        color: var(--text);
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 12.5px;
+        margin: 4px 0 14px;
+      }
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 18px;
+      }
+      .filters button {
+        background: var(--surface);
+        color: var(--muted);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 5px 11px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .filters button.on {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: #fff;
+      }
+      .daysec {
+        margin-bottom: 22px;
+      }
+      .dayhead {
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        padding: 8px 2px;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--gold);
+        border-bottom: 1px solid var(--line);
+        z-index: 1;
+      }
+      .dayhead.today::after {
+        content: "오늘";
+        margin-left: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--bg);
+        background: var(--gold);
+        border-radius: 5px;
+        padding: 1px 7px;
+        vertical-align: 2px;
+      }
+      .match {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 4px;
+        border-bottom: 1px solid var(--line);
+      }
+      .match:last-child {
+        border-bottom: 0;
+      }
+      .mwhen {
+        width: 64px;
+        flex: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .mgrp {
+        display: inline-block;
+        font-size: 9.5px;
+        font-weight: 700;
+        color: var(--gold);
+        background: rgba(233, 185, 74, 0.14);
+        border-radius: 4px;
+        padding: 0 4px;
+        margin-top: 2px;
+      }
+      .side {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex: 1;
+        min-width: 0;
+        font-size: 13.5px;
+      }
+      .side.r {
+        justify-content: flex-end;
+        text-align: right;
+      }
+      .side .nm {
+        white-space: normal;
+        word-break: keep-all;
+      }
+      .fl {
+        font-size: 17px;
+        line-height: 1;
+      }
+      .fl-img {
+        width: 22px;
+        height: 15px;
+        object-fit: cover;
+        border-radius: 2px;
+        vertical-align: middle;
+      }
+      .score {
+        flex: none;
+        min-width: 52px;
+        text-align: center;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 800;
+        font-size: 15px;
+      }
+      .score.live {
+        color: var(--live);
+      }
+      .score.up {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .match.fin .side,
+      .match.live .side {
+        font-weight: 600;
+      }
+      .lvdot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--live);
+        margin-right: 4px;
+        animation: blink 1.1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .empty,
+      .loading {
+        color: var(--muted);
+        padding: 30px 0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <h1>월드컵 2026 일정 · 결과</h1>
+        <a class="back" href="/">← 대시보드로</a>
+      </header>
+      <div class="sub" id="sub">날짜별 · 조별 전체 경기 · <span id="tznote"></span></div>
+      <div class="filters" id="filters"></div>
+      <div id="list"><div class="loading">불러오는 중…</div></div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      // 경기장별 UTC 오프셋 (2026 6~7월 고정): 동부-4 / 중부-5 / 태평양-7 / 멕시코-6
+      const STADIUM_UTC_OFF = {
+        1: -6,
+        2: -6,
+        3: -6,
+        4: -5,
+        5: -5,
+        6: -5,
+        7: -4,
+        8: -4,
+        9: -4,
+        10: -4,
+        11: -4,
+        12: -4,
+        13: -7,
+        14: -7,
+        15: -7,
+        16: -7,
+      };
+      function toUtcISO(s, sid) {
+        if (!s) return "";
+        const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+        if (!m) return "";
+        const off = sid != null && STADIUM_UTC_OFF[String(sid)] != null ? STADIUM_UTC_OFF[String(sid)] : -5;
+        return new Date(Date.UTC(+m[3], +m[1] - 1, +m[2], +m[4], +m[5]) - off * 3600 * 1000).toISOString();
+      }
+      function emojiIso2(iso2) {
+        if (!iso2 || iso2.length !== 2) return "";
+        const cc = iso2.toUpperCase();
+        if (!/^[A-Z]{2}$/.test(cc)) return "";
+        return String.fromCodePoint(...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+      }
+      function flagOf(t) {
+        if (t && t.flag && /^https?:\/\//.test(t.flag)) return `<img class="fl-img" src="${t.flag}" alt="" loading="lazy">`;
+        return `<span class="fl">${(t && t.flag) || emojiIso2(t && t.iso2) || "🏳️"}</span>`;
+      }
+      const fmtTime = (iso) => {
+        const d = new Date(iso);
+        return Number.isNaN(+d) ? "" : d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+      };
+      const dayLabel = (iso) => {
+        const d = new Date(iso);
+        return Number.isNaN(+d) ? "" : d.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+      };
+      const dayKey = (iso) => {
+        const d = new Date(iso);
+        return Number.isNaN(+d) ? "" : d.toLocaleDateString("en-CA");
+      };
+      function tzLabel() {
+        try {
+          const p = new Intl.DateTimeFormat("ko-KR", { timeZoneName: "short" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName");
+          return p ? p.value + " 기준" : "";
+        } catch (_) {
+          return "";
+        }
+      }
+
+      let MATCHES = [];
+      let GROUPS = [];
+      let activeGroup = "all";
+      const GLABEL = { R32: "32강", R16: "16강", QF: "8강", SF: "4강", "3RD": "3·4위전", FINAL: "결승" };
+      const GORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "R32", "R16", "QF", "SF", "3RD", "FINAL"];
+      const groupLabel = (g) => GLABEL[g] || (g ? g + "조" : "");
+      const groupRank = (g) => {
+        const i = GORDER.indexOf(g);
+        return i < 0 ? 99 : i;
+      };
+
+      async function load() {
+        let teams = [],
+          games = [],
+          squad = { teams: [] };
+        try {
+          const [tj, gj, sj] = await Promise.all([
+            fetch("/api/teams")
+              .then((r) => r.json())
+              .catch(() => ({})),
+            fetch("/api/games")
+              .then((r) => r.json())
+              .catch(() => ({})),
+            fetch("/squad.json", { cache: "no-cache" })
+              .then((r) => r.json())
+              .catch(() => ({ teams: [] })),
+          ]);
+          teams = tj.teams || tj || [];
+          games = gj.games || gj || [];
+          squad = sj || { teams: [] };
+        } catch (_) {}
+        // 코드 → 한글 (squad)
+        const koByCode = {};
+        (squad.teams || []).forEach((t) => {
+          if (t.country_code && t.country_ko) koByCode[String(t.country_code).toUpperCase()] = t.country_ko;
+        });
+        // id → 팀
+        const byId = {};
+        teams.forEach((t) => {
+          const code = (t.fifa_code || "").toUpperCase();
+          byId[String(t.id)] = { en: t.name_en, ko: koByCode[code] || t.name_en, iso2: t.iso2, flag: t.flag, code };
+        });
+        const nm = (g, side) => {
+          const t = byId[String(g[side + "_team_id"])];
+          if (t) return t;
+          return {
+            en: g[side + "_team_name_en"] || "미정",
+            ko: koByCode[(g[side + "_team_name_en"] || "").toUpperCase()] || g[side + "_team_name_en"] || "미정",
+            iso2: "",
+            flag: "",
+            code: "",
+          };
+        };
+        MATCHES = games
+          .map((g) => {
+            const iso = toUtcISO(g.local_date, g.stadium_id);
+            const te = String(g.time_elapsed || "").toLowerCase();
+            const fin = String(g.finished).toUpperCase() === "TRUE" || te === "finished";
+            const live = !fin && (te === "ht" || te === "live" || /^\d/.test(te));
+            return { iso, group: g.group || "", home: nm(g, "home"), away: nm(g, "away"), hs: g.home_score, as: g.away_score, fin, live };
+          })
+          .filter((m) => m.iso)
+          .sort((a, b) => a.iso.localeCompare(b.iso));
+        GROUPS = [...new Set(MATCHES.map((m) => m.group).filter(Boolean))].sort((a, b) => groupRank(a) - groupRank(b) || a.localeCompare(b));
+        $("tznote").textContent = tzLabel();
+        renderFilters();
+        render();
+      }
+
+      function renderFilters() {
+        const mk = (key, label) => `<button data-g="${key}" class="${activeGroup === key ? "on" : ""}">${label}</button>`;
+        $("filters").innerHTML = mk("all", "전체") + GROUPS.map((g) => mk(g, groupLabel(g))).join("");
+        $("filters")
+          .querySelectorAll("button")
+          .forEach((b) => {
+            b.onclick = () => {
+              activeGroup = b.dataset.g;
+              renderFilters();
+              render();
+            };
+          });
+      }
+
+      function render() {
+        const list = activeGroup === "all" ? MATCHES : MATCHES.filter((m) => m.group === activeGroup);
+        if (!list.length) {
+          $("list").innerHTML = '<div class="empty">표시할 경기가 없어요.</div>';
+          return;
+        }
+        const todayK = dayKey(new Date().toISOString());
+        // 날짜별 묶기 (날짜 내: 조 → 시간 순)
+        const byDay = new Map();
+        list.forEach((m) => {
+          const k = dayKey(m.iso);
+          if (!byDay.has(k)) byDay.set(k, []);
+          byDay.get(k).push(m);
+        });
+        let html = "";
+        [...byDay.keys()].sort().forEach((k) => {
+          const items = byDay.get(k).sort((a, b) => groupRank(a.group) - groupRank(b.group) || a.iso.localeCompare(b.iso));
+          html += `<div class="daysec"><div class="dayhead ${k === todayK ? "today" : ""}">${esc(dayLabel(items[0].iso))}</div>`;
+          html += items
+            .map((m) => {
+              const cls = m.fin ? "fin" : m.live ? "live" : "up";
+              const score = m.live
+                ? `<span class="score live">${m.hs ?? 0}-${m.as ?? 0}</span>`
+                : m.fin
+                  ? `<span class="score">${m.hs ?? 0}-${m.as ?? 0}</span>`
+                  : `<span class="score up">${fmtTime(m.iso)}</span>`;
+              const grp = m.group ? `<div class="mgrp">${esc(groupLabel(m.group))}</div>` : "";
+              return `<div class="match ${cls}">
+                <div class="mwhen">${m.live ? '<span class="lvdot"></span>LIVE' : fmtTime(m.iso)}${grp}</div>
+                <div class="side">${flagOf(m.home)}<span class="nm">${esc(m.home.ko)}</span></div>
+                ${score}
+                <div class="side r"><span class="nm">${esc(m.away.ko)}</span>${flagOf(m.away)}</div>
+              </div>`;
+            })
+            .join("");
+          html += `</div>`;
+        });
+        $("list").innerHTML = html;
+        // 오늘 섹션으로 스크롤
+        const todayEl = document.querySelector(".dayhead.today");
+        if (todayEl && activeGroup === "all") todayEl.scrollIntoView({ block: "start" });
+      }
+
+      load();
+    </script>
+  </body>
+</html>
