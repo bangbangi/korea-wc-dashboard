@@ -1382,8 +1382,7 @@
         <span>© <span id="year"></span> worldcup.bangbangi.com</span>
         <span class="muted"
           ><span id="autoLabel"></span> · <span id="refreshNote"></span> ·
-          <span class="admin-link" id="contactLink" role="button" tabindex="0" aria-label="문의하기">문의</span> ·
-          <span class="admin-link" id="adminLink" role="button" tabindex="0" aria-label="관리자">관리자</span></span
+          <span class="admin-link" id="contactLink" role="button" tabindex="0" aria-label="문의하기">문의</span></span
         >
       </footer>
     </main>
@@ -1401,10 +1400,7 @@
         <div id="adminBody" style="display: none">
           <div class="sect">
             <h3 style="font-size: 14px">선수 이름 추가</h3>
-            <p class="hint">
-              화면에 영어로 뜬 표기 그대로 넣으세요. (대소문자·하이픈·발음기호는 자동 처리) ·
-              <a href="/admin" target="_blank" rel="nofollow noopener" style="color: var(--blue)">전용 관리자 페이지에서 자동 수집 →</a>
-            </p>
+            <p class="hint">화면에 영어로 뜬 표기 그대로 넣으세요. (대소문자·하이픈·발음기호는 자동 처리)</p>
             <div class="row">
               <input id="plName" placeholder="영문 (예: Patrik Schick)" /><input id="plKo" placeholder="한글 (예: 파트리크 시크)" />
             </div>
@@ -3177,7 +3173,8 @@ Giovanni Reyna = 지오반니 레이나"
         ADM("adminModal").classList.add("on");
       }
       function initAdmin() {
-        ADM("adminLink").onclick = openAdmin;
+        const _al = ADM("adminLink");
+        if (_al) _al.onclick = openAdmin;
         ADM("adminClose").onclick = () => ADM("adminModal").classList.remove("on");
         ADM("adminModal").addEventListener("click", (e) => {
           if (e.target.id === "adminModal") e.currentTarget.classList.remove("on");
