@@ -855,6 +855,15 @@
       .cblab span {
         word-break: keep-all;
       }
+      .cblab .cbgrp {
+        flex: none;
+        font-size: 9.5px;
+        font-weight: 700;
+        color: var(--gold);
+        background: rgba(233, 185, 74, 0.14);
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
       .cbtrack {
         display: flex;
         align-items: center;
@@ -2694,10 +2703,11 @@ Giovanni Reyna = 지오반니 레이나"
               ga = arr[2],
               k = (side.code || side.name || "").toUpperCase();
             if (!k) return;
-            if (!map[k]) map[k] = { side, gf: 0, ga: 0, gp: 0 };
+            if (!map[k]) map[k] = { side, gf: 0, ga: 0, gp: 0, grp: "" };
             map[k].gf += gf;
             map[k].ga += ga;
             map[k].gp++;
+            if (m.group && /^[A-L]$/i.test(m.group)) map[k].grp = m.group.toUpperCase(); // 조별리그 조(A~L)
           });
         });
         const rows = Object.values(map)
@@ -2713,7 +2723,7 @@ Giovanni Reyna = 지오반니 레이나"
             .map(
               (r) => `
             <div class="cbrow">
-              <div class="cblab">${flagInline(r.side)}<span>${esc(displayName(r.side))}</span></div>
+              <div class="cblab">${flagInline(r.side)}<span>${esc(displayName(r.side))}</span>${r.grp ? `<span class="cbgrp">${esc(r.grp)}${state.lang === "ko" ? "조" : ""}</span>` : ""}</div>
               <div class="cbtrack"><i style="width:${((r.gf / max) * 86).toFixed(1)}%;background:${CC.gold}"></i><b>${r.gf}</b></div>
               <div class="cbtrack"><i style="width:${((r.ga / max) * 86).toFixed(1)}%;background:${CC.muted}"></i><b class="m">${r.ga}</b></div>
             </div>`,
