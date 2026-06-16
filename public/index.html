@@ -2089,6 +2089,7 @@ Giovanni Reyna = 지오반니 레이나"
         const te = String(g.time_elapsed || "")
           .trim()
           .toLowerCase();
+        const kickoff = parseLocalDate(g.local_date, g.stadium_id);
         let status = "upcoming",
           minute = null;
         if (finishedFlag || te === "finished" || /finish|ended|full.?time|^ft$/i.test(te)) status = "finished";
@@ -2097,12 +2098,18 @@ Giovanni Reyna = 지오반니 레이나"
           const mm = te.match(/^\d+(\+\d+)?/);
           minute = mm ? mm[0] : null;
         }
+        // 소스 지연 보정: 킥오프 시각이 지났는데 소스가 아직 '예정'이면 진행 중으로 처리 (약 3시간 넘게 지났으면 종료로 간주)
+        if (status === "upcoming" && kickoff) {
+          const ko = Date.parse(kickoff),
+            now = Date.now();
+          if (!Number.isNaN(ko) && now >= ko) status = now < ko + 3.2 * 3600e3 ? "live" : "finished";
+        }
         // "notstarted" / "" / 그 외 → upcoming
         return {
           id: g.id,
           status,
           minute,
-          kickoff: parseLocalDate(g.local_date, g.stadium_id),
+          kickoff,
           venue: stadiumName(g.stadium_id),
           group: g.group,
           home,
