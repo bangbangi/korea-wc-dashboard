@@ -25,6 +25,16 @@ const HL_SYNC_MS = 18 * 60 * 1000; // 최소 동기화 간격(분) — 무료 10
 const HL_SCHED_MS = 3 * 60 * 60 * 1000; // 전체 일정 갱신 간격(3시간)
 const HL_LIVE = ["First half", "Second half", "Half time", "Extra time", "Break time", "Penalties", "In progress"];
 const HL_FIN = ["Finished", "Finished after penalties", "Finished after extra time"];
+const HL_LIVE_MS = 90 * 1000; // 라이브 점수 동기화 최소 간격(무료 쿼터 보호)
+
+// 경기장별 UTC 오프셋(2026 6~7월 고정): 동부-4 / 중부-5 / 태평양-7 / 멕시코-6
+const STADIUM_UTC_OFF = { 1: -6, 2: -6, 3: -6, 4: -5, 5: -5, 6: -5, 7: -4, 8: -4, 9: -4, 10: -4, 11: -4, 12: -4, 13: -7, 14: -7, 15: -7, 16: -7 };
+function kickoffUTC(s, sid) {
+  const m = String(s || "").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if (!m) return 0;
+  const off = STADIUM_UTC_OFF[String(sid)] != null ? STADIUM_UTC_OFF[String(sid)] : -5;
+  return Date.UTC(+m[3], +m[1] - 1, +m[2], +m[4], +m[5]) - off * 3600 * 1000;
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -100,6 +110,45 @@ export default {
     if (ttl === undefined) return json({ error: "Unknown endpoint", code: 404 }, 404);
     const cache = caches.default;
     const cacheKey = new Request(url.origin + url.pathname, { method: "GET" }); // 자기 도메인 키(안전)
+
+    // games 는 worldcup26(예정/종료만 제공) + Highlightly 라이브 점수를 병합해서 반환
+    if (endpoint === "games") {
+      const hit = await cache.match(cacheKey);
+      if (hit) {
+        ctx.waitUntil(syncLiveScores(env).catch(() => {})); // 캐시 적중에도 라이브는 백그라운드 갱신(게이트로 과호출 방지)
+        return hit;
+      }
+      let games = [];
+      try {
+        const res = await fetch(`${API_BASE}/get/games`, { headers: { Accept: "application/json" } });
+        const text = await res.text();
+        if (!res.ok) return json({ error: "Upstream " + res.status, code: res.status }, 502);
+        const parsed = JSON.parse(text);
+        games = parsed.games || (Array.isArray(parsed) ? parsed : []);
+      } catch (e) {
+        return json({ error: "Upstream fetch failed", code: 502 }, 502);
+      }
+      // 라이브 점수 병합 (실패해도 원본 그대로 — 안전)
+      try {
+        const live = safeJson(env.CACHE && (await env.CACHE.get("hl:live")), null);
+        if (live && live.scores && Date.now() - (live.updated || 0) < 10 * 60 * 1000) {
+          for (const g of games) {
+            if (String(g.finished).toUpperCase() === "TRUE") continue; // 이미 종료=최종점수 신뢰
+            const s = live.scores[pairKey(g.home_team_name_en || "", g.away_team_name_en || "")];
+            if (!s) continue;
+            g.home_score = s.hs;
+            g.away_score = s.as;
+            if (s.status === "fin") g.finished = "TRUE";
+            g.time_elapsed = s.status === "fin" ? "finished" : s.min != null ? String(s.min) : "live";
+          }
+        }
+      } catch (_) {}
+      const out = raw(JSON.stringify({ games }), 200, { "Cache-Control": `public, max-age=${Math.max(ttl, 10)}`, "X-Cache": "MISS" });
+      ctx.waitUntil(cache.put(cacheKey, out.clone()));
+      ctx.waitUntil(syncLiveScores(env, games).catch(() => {}));
+      return out;
+    }
+
     const hit = await cache.match(cacheKey);
     if (hit) return hit; // 엣지 캐시 적중
     try {
@@ -117,6 +166,7 @@ export default {
   async scheduled(event, env, ctx) {
     // 데이터 캐시는 이제 Cache API(요청 시 자동 캐싱)가 담당 → 크론에서 KV 쓰기 없음
     ctx.waitUntil(syncHighlightly(env).catch(() => {}));
+    ctx.waitUntil(syncLiveScores(env).catch(() => {}));
   },
 };
 
@@ -244,6 +294,81 @@ async function syncHighlightly(env) {
     .sort((a, b) => b.points - a.points || b.goals - a.goals)
     .slice(0, 40);
   await env.CACHE.put("hl:points", JSON.stringify({ updated: now, matches: Object.keys(tally.processed).length, players: list }));
+}
+
+/* ================= Highlightly: 라이브 점수 =================
+ * worldcup26 은 라이브 점수를 주지 않으므로(notstarted ↔ finished), 킥오프 시계 기준으로
+ * "지금 진행 중일" 경기가 있을 때만 Highlightly 경기목록을 받아 현재 점수를 KV(hl:live)에 저장.
+ * /api/games 에서 이 점수를 병합. 무료 쿼터 보호를 위해 HL_LIVE_MS 간격 + 예산 가드 사용.
+ */
+async function syncLiveScores(env, games) {
+  if (!env.HIGHLIGHTLY_KEY || !env.CACHE) return;
+  const now = Date.now();
+  const last = Number((await env.CACHE.get("hl:livesync")) || 0);
+  if (now - last < HL_LIVE_MS) return; // 간격 게이트
+  if (!games) {
+    try {
+      const r = await fetch(`${API_BASE}/get/games`, { headers: { Accept: "application/json" } });
+      if (r.ok) {
+        const p = JSON.parse(await r.text());
+        games = p.games || (Array.isArray(p) ? p : []);
+      }
+    } catch (_) {
+      return;
+    }
+  }
+  if (!games || !games.length) return;
+  // 시계 기준 라이브 후보(킥오프 지남 ~ +3.2h, 미종료)
+  const cand = games.filter((g) => {
+    if (String(g.finished).toUpperCase() === "TRUE") return false;
+    const ko = kickoffUTC(g.local_date, g.stadium_id);
+    return ko && now >= ko && now < ko + 3.2 * 3600 * 1000;
+  });
+  if (!cand.length) return; // 진행 중일 경기 없음 → 호출 0
+  const leagueId = await env.CACHE.get("hl:league");
+  if (!leagueId) return; // 리그ID는 포인트 동기화가 채움
+  await env.CACHE.put("hl:livesync", String(now)); // 게이트 먼저 기록(중복 방지)
+  const budget = { left: 3, ok: true };
+  const scores = {};
+  for (const off of [0, 100]) {
+    if (budget.left <= 0 || !budget.ok) break;
+    const mj = await hlGet(env, `/matches?leagueId=${leagueId}&season=${HL_SEASON}&limit=100&offset=${off}`, budget);
+    const data = (mj && mj.data) || [];
+    for (const m of data) {
+      const k = pairKey((m.homeTeam && m.homeTeam.name) || "", (m.awayTeam && m.awayTeam.name) || "");
+      if (!k) continue;
+      const sc = parseHlScore(m);
+      if (sc) scores[k] = sc;
+    }
+    if (data.length < 100) break;
+  }
+  if (Object.keys(scores).length) await env.CACHE.put("hl:live", JSON.stringify({ updated: now, scores }));
+}
+
+// Highlightly 경기 객체에서 현재 점수/상태 추출 (여러 응답 형태에 방어적으로 대응)
+function parseHlScore(m) {
+  const st = (m && m.state) || {};
+  const desc = String(st.description || "");
+  const isFin = HL_FIN.some((d) => d.toLowerCase() === desc.toLowerCase()) || /finish|ended|after (extra|penal)|full.?time|^ft$|aet/i.test(desc);
+  const isLive = HL_LIVE.some((d) => d.toLowerCase() === desc.toLowerCase()) || /half|progress|extra|penalt|break/i.test(desc);
+  if (!isFin && !isLive) return null; // 시작 전 → 무시
+  let hs = null,
+    as = null;
+  const scStr = st.score && (st.score.current || st.score.fulltime || st.score.total || st.score.regular);
+  if (typeof scStr === "string") {
+    const mm = scStr.match(/(\d+)\s*[-:]\s*(\d+)/);
+    if (mm) {
+      hs = +mm[1];
+      as = +mm[2];
+    }
+  }
+  if (hs == null && m.homeTeam && m.homeTeam.score != null) hs = +m.homeTeam.score;
+  if (as == null && m.awayTeam && m.awayTeam.score != null) as = +m.awayTeam.score;
+  if (hs == null && st.homeScore != null) hs = +st.homeScore;
+  if (as == null && st.awayScore != null) as = +st.awayScore;
+  if (hs == null || as == null || Number.isNaN(hs) || Number.isNaN(as)) return null;
+  const min = st.clock != null ? st.clock : st.minute != null ? st.minute : null;
+  return { hs, as, status: isFin ? "fin" : "live", min };
 }
 
 async function hlGet(env, path, budget) {
