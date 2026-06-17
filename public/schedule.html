@@ -303,16 +303,14 @@
         return i < 0 ? 99 : i;
       };
 
-      async function load() {
+      let BYID = null,
+        KOBYCODE = null;
+      async function loadStatic() {
         let teams = [],
-          games = [],
           squad = { teams: [] };
         try {
-          const [tj, gj, sj] = await Promise.all([
+          const [tj, sj] = await Promise.all([
             fetch("/api/teams")
-              .then((r) => r.json())
-              .catch(() => ({})),
-            fetch("/api/games")
               .then((r) => r.json())
               .catch(() => ({})),
             fetch("/squad.json", { cache: "no-cache" })
@@ -320,37 +318,54 @@
               .catch(() => ({ teams: [] })),
           ]);
           teams = tj.teams || tj || [];
-          games = gj.games || gj || [];
           squad = sj || { teams: [] };
         } catch (_) {}
-        // 코드 → 한글 (squad)
-        const koByCode = {};
+        KOBYCODE = {};
         (squad.teams || []).forEach((t) => {
-          if (t.country_code && t.country_ko) koByCode[String(t.country_code).toUpperCase()] = t.country_ko;
+          if (t.country_code && t.country_ko) KOBYCODE[String(t.country_code).toUpperCase()] = t.country_ko;
         });
-        // id → 팀
-        const byId = {};
+        BYID = {};
         teams.forEach((t) => {
           const code = (t.fifa_code || "").toUpperCase();
-          byId[String(t.id)] = { en: t.name_en, ko: koByCode[code] || t.name_en, iso2: t.iso2, flag: t.flag, code };
+          BYID[String(t.id)] = { en: t.name_en, ko: KOBYCODE[code] || t.name_en, iso2: t.iso2, flag: t.flag, code };
         });
+      }
+
+      async function refreshGames() {
+        if (!BYID) return;
+        let games = [];
+        try {
+          const gj = await fetch("/api/games", { cache: "no-store" })
+            .then((r) => r.json())
+            .catch(() => ({})); // 캐시 우회 → 폴링마다 최신
+          games = gj.games || (Array.isArray(gj) ? gj : []);
+        } catch (_) {}
         const nm = (g, side) => {
-          const t = byId[String(g[side + "_team_id"])];
+          const t = BYID[String(g[side + "_team_id"])];
           if (t) return t;
           return {
             en: g[side + "_team_name_en"] || "미정",
-            ko: koByCode[(g[side + "_team_name_en"] || "").toUpperCase()] || g[side + "_team_name_en"] || "미정",
+            ko: KOBYCODE[(g[side + "_team_name_en"] || "").toUpperCase()] || g[side + "_team_name_en"] || "미정",
             iso2: "",
             flag: "",
             code: "",
           };
         };
+        const now = Date.now();
         MATCHES = games
           .map((g) => {
             const iso = toUtcISO(g.local_date, g.stadium_id);
             const te = String(g.time_elapsed || "").toLowerCase();
-            const fin = String(g.finished).toUpperCase() === "TRUE" || te === "finished";
-            const live = !fin && (te === "ht" || te === "live" || /^\d/.test(te));
+            let fin = String(g.finished).toUpperCase() === "TRUE" || te === "finished";
+            let live = !fin && (te === "ht" || te === "live" || /^\d/.test(te));
+            // 킥오프 시계 보정: 소스가 라이브를 안 줘도 킥오프 지나면 진행 중(약 3시간 넘으면 종료로 간주)
+            if (!fin && !live && iso) {
+              const ko = Date.parse(iso);
+              if (!Number.isNaN(ko) && now >= ko) {
+                if (now < ko + 3.2 * 3600 * 1000) live = true;
+                else fin = true;
+              }
+            }
             return { iso, group: g.group || "", home: nm(g, "home"), away: nm(g, "away"), hs: g.home_score, as: g.away_score, fin, live };
           })
           .filter((m) => m.iso)
@@ -360,6 +375,19 @@
         renderFilters();
         render();
         injectJsonLd();
+        scheduleNext();
+      }
+
+      // 자동 새로고침: 라이브 경기 있으면 더 자주
+      function scheduleNext() {
+        const live = MATCHES.some((m) => m.live);
+        clearTimeout(scheduleNext._t);
+        scheduleNext._t = setTimeout(refreshGames, live ? 15000 : 30000);
+      }
+
+      async function load() {
+        await loadStatic();
+        await refreshGames();
       }
 
       // 경기 목록을 구조화 데이터(JSON-LD)로 노출 → AI 답변엔진/검색엔진이 일정을 이해·인용 (GEO)
@@ -386,7 +414,10 @@
           };
           const s = document.createElement("script");
           s.type = "application/ld+json";
+          s.id = "ld-schedule";
           s.textContent = JSON.stringify(data);
+          const prev = document.getElementById("ld-schedule");
+          if (prev) prev.remove();
           document.head.appendChild(s);
         } catch (_) {}
       }
@@ -443,9 +474,14 @@
           html += `</div>`;
         });
         $("list").innerHTML = html;
-        // 오늘 섹션으로 스크롤
-        const todayEl = document.querySelector(".dayhead.today");
-        if (todayEl && activeGroup === "all") todayEl.scrollIntoView({ block: "start" });
+        // 오늘 섹션으로 스크롤 (최초 1회만 — 자동 새로고침 때는 화면이 안 튀게)
+        if (!render._scrolled && activeGroup === "all") {
+          const todayEl = document.querySelector(".dayhead.today");
+          if (todayEl) {
+            todayEl.scrollIntoView({ block: "start" });
+            render._scrolled = true;
+          }
+        }
       }
 
       load();
