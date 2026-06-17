@@ -392,22 +392,59 @@
 
       // ---------- 미등록 선수 수집 ----------
       let pendingNames = [];
+      let pendingCountry = {}; // 선수명 -> 소속 국가(가능하면 한글)
       async function scanPending() {
         $("pendMsg").textContent = "";
         $("pendList").innerHTML = '<div class="empty">불러오는 중…</div>';
         await buildKnown();
+        // 팀 → 한글 국가 매핑 구성
+        const byId = {},
+          koByCode = {},
+          koByName = {};
+        try {
+          const tj = await api("/api/teams");
+          (tj.teams || tj || []).forEach((t) => {
+            byId[String(t.id)] = { en: t.name_en, code: (t.fifa_code || "").toUpperCase() };
+          });
+        } catch (_) {}
+        try {
+          const sq = await (await fetch("/squad.json", { cache: "no-cache" })).json();
+          (sq.teams || []).forEach((t) => {
+            if (t.country_code && t.country_ko) koByCode[String(t.country_code).toUpperCase()] = t.country_ko;
+            if (t.country_en && t.country_ko) koByName[normName(t.country_en)] = t.country_ko;
+          });
+        } catch (_) {}
+        // 팀 영문명 → 한글 (fifa 코드 경유)
+        for (const id in byId) {
+          const t = byId[id];
+          if (t.en && koByCode[t.code]) koByName[normName(t.en)] = koByCode[t.code];
+        }
+        const countryOf = (id, nameEn) => {
+          const t = byId[String(id)];
+          if (t) return koByCode[t.code] || t.en || "";
+          return koByName[normName(nameEn || "")] || nameEn || "";
+        };
         const names = new Set();
+        const country = {};
+        const addName = (n, c) => {
+          if (!n) return;
+          names.add(n);
+          if (c && !country[n]) country[n] = c;
+        };
         try {
           const g = await api("/api/games");
           (g.games || []).forEach((m) => {
-            parseScorers(m.home_scorers).forEach((n) => names.add(n));
-            parseScorers(m.away_scorers).forEach((n) => names.add(n));
+            const hc = countryOf(m.home_team_id, m.home_team_name_en);
+            const ac = countryOf(m.away_team_id, m.away_team_name_en);
+            parseScorers(m.home_scorers).forEach((n) => addName(n, hc));
+            parseScorers(m.away_scorers).forEach((n) => addName(n, ac));
           });
         } catch (_) {}
         try {
           const pt = await api("/api/points");
-          (pt.players || []).forEach((p) => p.name && names.add(p.name));
+          (pt.players || []).forEach((p) => addName(p.name, p.team ? koByName[normName(p.team)] || p.team : ""));
         } catch (_) {}
+        pendingCountry = country;
         pendingNames = [...names].filter((n) => n && !/[\uac00-\ud7a3]/.test(n) && !isTranslated(n)).sort((a, b) => a.localeCompare(b));
         renderPending();
       }
@@ -422,7 +459,7 @@
         el.innerHTML = pendingNames
           .map(
             (n, i) =>
-              `<div class="pendrow"><div class="en">${esc(n)}</div><input data-en="${esc(n)}" id="pend_${i}" placeholder="한글 이름" autocomplete="off" /></div>`,
+              `<div class="pendrow"><div class="en">${esc(n)}${pendingCountry[n] ? `<small>${esc(pendingCountry[n])}</small>` : ""}</div><input data-en="${esc(n)}" id="pend_${i}" placeholder="한글 이름" autocomplete="off" /></div>`,
           )
           .join("");
         $("savePendBtn").disabled = false;
