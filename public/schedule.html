@@ -73,6 +73,21 @@
       a.back:hover {
         color: var(--text);
       }
+      .topr {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .langsel {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
       .sub {
         color: var(--muted);
         font-size: 12.5px;
@@ -114,7 +129,7 @@
         z-index: 1;
       }
       .dayhead.today::after {
-        content: "오늘";
+        content: attr(data-today);
         margin-left: 8px;
         font-size: 11px;
         font-weight: 700;
@@ -224,10 +239,13 @@
   <body>
     <div class="wrap">
       <header class="top">
-        <h1>월드컵 2026 일정 · 결과</h1>
-        <a class="back" href="/">← 대시보드로</a>
+        <h1 id="pgTitle">월드컵 2026 일정 · 결과</h1>
+        <div class="topr">
+          <select class="langsel" id="langSel" aria-label="언어 / Language"></select>
+          <a class="back" id="backLink" href="/">← 대시보드로</a>
+        </div>
       </header>
-      <div class="sub" id="sub">날짜별 · 조별 전체 경기 · <span id="tznote"></span></div>
+      <div class="sub" id="sub"><span id="subPrefix">날짜별 · 조별 전체 경기 · </span><span id="tznote"></span></div>
       <div class="filters" id="filters"></div>
       <div id="list"><div class="loading">불러오는 중…</div></div>
     </div>
@@ -235,6 +253,154 @@
     <script>
       const $ = (id) => document.getElementById(id);
       const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+      // ---------- 다국어 (메인과 wc_lang 연동) ----------
+      const LANGS = ["ko", "en", "es", "pt", "fr", "ar"];
+      const LANG_LABEL = { ko: "한국어", en: "ENG", es: "Español", pt: "Português", fr: "Français", ar: "العربية" };
+      const LOCALE = { ko: "ko-KR", en: "en-US", es: "es-ES", pt: "pt-BR", fr: "fr-FR", ar: "ar" };
+      let LANG = (function () {
+        try {
+          const v = localStorage.getItem("wc_lang");
+          if (LANGS.includes(v)) return v;
+        } catch (_) {}
+        const two = (((typeof navigator !== "undefined" && navigator.language) || "") + "").slice(0, 2).toLowerCase();
+        return LANGS.includes(two) ? two : "ko";
+      })();
+      const loc = () => LOCALE[LANG] || "en-US";
+      const _dn = {};
+      function intlCountry(iso2) {
+        if (!iso2) return "";
+        const k = loc() + "|" + iso2;
+        try {
+          if (!_dn[k]) _dn[k] = new Intl.DisplayNames([loc()], { type: "region" });
+          return _dn[k].of(String(iso2).toUpperCase()) || "";
+        } catch (_) {
+          return "";
+        }
+      }
+      const T = {
+        ko: {
+          title: "월드컵 2026 일정 · 결과",
+          back: "← 대시보드로",
+          sub: "날짜별 · 조별 전체 경기 · ",
+          all: "전체",
+          today: "오늘",
+          tbd: "미정",
+          empty: "표시할 경기가 없어요.",
+          loading: "불러오는 중…",
+          tzSuffix: " 기준",
+          live: "LIVE",
+          R32: "32강",
+          R16: "16강",
+          QF: "8강",
+          SF: "4강",
+          "3RD": "3·4위전",
+          FINAL: "결승",
+          gsuf: "조",
+        },
+        en: {
+          title: "World Cup 2026 Schedule & Results",
+          back: "← Dashboard",
+          sub: "All matches by date & group · ",
+          all: "All",
+          today: "Today",
+          tbd: "TBD",
+          empty: "No matches to show.",
+          loading: "Loading…",
+          tzSuffix: "",
+          live: "LIVE",
+          R32: "Round of 32",
+          R16: "Round of 16",
+          QF: "Quarter-finals",
+          SF: "Semi-finals",
+          "3RD": "Third place",
+          FINAL: "Final",
+          gsuf: "",
+        },
+        es: {
+          title: "Mundial 2026 · Calendario y Resultados",
+          back: "← Panel",
+          sub: "Todos los partidos por fecha y grupo · ",
+          all: "Todos",
+          today: "Hoy",
+          tbd: "Por definir",
+          empty: "No hay partidos para mostrar.",
+          loading: "Cargando…",
+          tzSuffix: "",
+          live: "EN VIVO",
+          R32: "Dieciseisavos",
+          R16: "Octavos",
+          QF: "Cuartos",
+          SF: "Semifinales",
+          "3RD": "Tercer puesto",
+          FINAL: "Final",
+          gsuf: "",
+        },
+        pt: {
+          title: "Copa 2026 · Calendário e Resultados",
+          back: "← Painel",
+          sub: "Todos os jogos por data e grupo · ",
+          all: "Todos",
+          today: "Hoje",
+          tbd: "A definir",
+          empty: "Nenhum jogo para mostrar.",
+          loading: "Carregando…",
+          tzSuffix: "",
+          live: "AO VIVO",
+          R32: "16 avos",
+          R16: "Oitavas",
+          QF: "Quartas",
+          SF: "Semifinais",
+          "3RD": "Terceiro lugar",
+          FINAL: "Final",
+          gsuf: "",
+        },
+        fr: {
+          title: "Coupe du monde 2026 · Calendrier et Résultats",
+          back: "← Tableau de bord",
+          sub: "Tous les matchs par date et groupe · ",
+          all: "Tous",
+          today: "Aujourd'hui",
+          tbd: "À définir",
+          empty: "Aucun match à afficher.",
+          loading: "Chargement…",
+          tzSuffix: "",
+          live: "EN DIRECT",
+          R32: "16es de finale",
+          R16: "8es de finale",
+          QF: "Quarts",
+          SF: "Demi-finales",
+          "3RD": "Petite finale",
+          FINAL: "Finale",
+          gsuf: "",
+        },
+        ar: {
+          title: "كأس العالم 2026 · الجدول والنتائج",
+          back: "← لوحة التحكم",
+          sub: "كل المباريات حسب التاريخ والمجموعة · ",
+          all: "الكل",
+          today: "اليوم",
+          tbd: "يحدد لاحقًا",
+          empty: "لا توجد مباريات للعرض.",
+          loading: "جارٍ التحميل…",
+          tzSuffix: "",
+          live: "مباشر",
+          R32: "دور الـ32",
+          R16: "دور الـ16",
+          QF: "ربع النهائي",
+          SF: "نصف النهائي",
+          "3RD": "المركز الثالث",
+          FINAL: "النهائي",
+          gsuf: "",
+        },
+      };
+      const TX = () => T[LANG] || T.en;
+      const nameFor = (t) => {
+        if (!t) return "";
+        if (LANG === "ko") return t.ko || t.en || "";
+        if (LANG === "en") return t.en || "";
+        return intlCountry(t.iso2) || t.en || t.ko || "";
+      };
       // 경기장별 UTC 오프셋 (2026 6~7월 고정): 동부-4 / 중부-5 / 태평양-7 / 멕시코-6
       const STADIUM_UTC_OFF = {
         1: -6,
@@ -273,11 +439,11 @@
       }
       const fmtTime = (iso) => {
         const d = new Date(iso);
-        return Number.isNaN(+d) ? "" : d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+        return Number.isNaN(+d) ? "" : d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
       };
       const dayLabel = (iso) => {
         const d = new Date(iso);
-        return Number.isNaN(+d) ? "" : d.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+        return Number.isNaN(+d) ? "" : d.toLocaleDateString(loc(), { month: "long", day: "numeric", weekday: "short" });
       };
       const dayKey = (iso) => {
         const d = new Date(iso);
@@ -285,8 +451,8 @@
       };
       function tzLabel() {
         try {
-          const p = new Intl.DateTimeFormat("ko-KR", { timeZoneName: "short" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName");
-          return p ? p.value + " 기준" : "";
+          const p = new Intl.DateTimeFormat(loc(), { timeZoneName: "short" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName");
+          return p ? p.value + TX().tzSuffix : "";
         } catch (_) {
           return "";
         }
@@ -297,7 +463,11 @@
       let activeGroup = "all";
       const GLABEL = { R32: "32강", R16: "16강", QF: "8강", SF: "4강", "3RD": "3·4위전", FINAL: "결승" };
       const GORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "R32", "R16", "QF", "SF", "3RD", "FINAL"];
-      const groupLabel = (g) => GLABEL[g] || (g ? g + "조" : "");
+      const groupLabel = (g) => {
+        if (!g) return "";
+        const x = TX();
+        return x[g] || (GORDER.indexOf(g) < 12 ? g + x.gsuf : g); // A~L: 글자(+조), 그 외: 스테이지명
+      };
       const groupRank = (g) => {
         const i = GORDER.indexOf(g);
         return i < 0 ? 99 : i;
@@ -342,14 +512,9 @@
         } catch (_) {}
         const nm = (g, side) => {
           const t = BYID[String(g[side + "_team_id"])];
-          if (t) return t;
-          return {
-            en: g[side + "_team_name_en"] || "미정",
-            ko: KOBYCODE[(g[side + "_team_name_en"] || "").toUpperCase()] || g[side + "_team_name_en"] || "미정",
-            iso2: "",
-            flag: "",
-            code: "",
-          };
+          if (t) return { ...t, tbd: false };
+          const en = g[side + "_team_name_en"] || "";
+          return { en, ko: KOBYCODE[en.toUpperCase()] || en, iso2: "", flag: "", code: "", tbd: !en };
         };
         const now = Date.now();
         MATCHES = games
@@ -385,7 +550,46 @@
         scheduleNext._t = setTimeout(refreshGames, live ? 15000 : 30000);
       }
 
+      function setStaticLabels() {
+        const x = TX();
+        document.documentElement.lang = LANG;
+        document.documentElement.dir = LANG === "ar" ? "rtl" : "ltr"; // 아랍어 RTL
+        document.title = x.title + " | worldcup.bangbangi.com";
+        const set = (id, v) => {
+          const e = $(id);
+          if (e) e.textContent = v;
+        };
+        set("pgTitle", x.title);
+        set("backLink", x.back);
+        set("subPrefix", x.sub);
+        const ld = document.querySelector("#list .loading");
+        if (ld) ld.textContent = x.loading;
+        const sel = $("langSel");
+        if (sel) sel.value = LANG;
+      }
+      function applyLang(lang) {
+        LANG = LANGS.includes(lang) ? lang : "ko";
+        try {
+          localStorage.setItem("wc_lang", LANG);
+        } catch (_) {}
+        setStaticLabels();
+        render._scrolled = true; // 언어 변경 시 화면 점프 방지
+        $("tznote").textContent = tzLabel();
+        renderFilters();
+        render();
+        injectJsonLd();
+      }
+      function initLangSelect() {
+        const sel = $("langSel");
+        if (!sel) return;
+        sel.innerHTML = LANGS.map((l) => `<option value="${l}" lang="${l}">${LANG_LABEL[l]}</option>`).join("");
+        sel.value = LANG;
+        sel.addEventListener("change", () => applyLang(sel.value));
+      }
+
       async function load() {
+        initLangSelect();
+        setStaticLabels();
         await loadStatic();
         await refreshGames();
       }
@@ -393,14 +597,14 @@
       // 경기 목록을 구조화 데이터(JSON-LD)로 노출 → AI 답변엔진/검색엔진이 일정을 이해·인용 (GEO)
       function injectJsonLd() {
         try {
-          const events = MATCHES.filter((m) => m.home.ko !== "미정" && m.away.ko !== "미정").map((m) => ({
+          const events = MATCHES.filter((m) => !m.home.tbd && !m.away.tbd).map((m) => ({
             "@type": "SportsEvent",
-            name: m.home.ko + " vs " + m.away.ko,
+            name: (m.home.en || m.home.ko) + " vs " + (m.away.en || m.away.ko),
             sport: "Football",
             startDate: m.iso,
             competitor: [
-              { "@type": "SportsTeam", name: m.home.ko },
-              { "@type": "SportsTeam", name: m.away.ko },
+              { "@type": "SportsTeam", name: m.home.en || m.home.ko },
+              { "@type": "SportsTeam", name: m.away.en || m.away.ko },
             ],
             superEvent: { "@type": "SportsEvent", name: "2026 FIFA 월드컵" },
           }));
@@ -424,7 +628,7 @@
 
       function renderFilters() {
         const mk = (key, label) => `<button data-g="${key}" class="${activeGroup === key ? "on" : ""}">${label}</button>`;
-        $("filters").innerHTML = mk("all", "전체") + GROUPS.map((g) => mk(g, groupLabel(g))).join("");
+        $("filters").innerHTML = mk("all", TX().all) + GROUPS.map((g) => mk(g, groupLabel(g))).join("");
         $("filters")
           .querySelectorAll("button")
           .forEach((b) => {
@@ -439,7 +643,7 @@
       function render() {
         const list = activeGroup === "all" ? MATCHES : MATCHES.filter((m) => m.group === activeGroup);
         if (!list.length) {
-          $("list").innerHTML = '<div class="empty">표시할 경기가 없어요.</div>';
+          $("list").innerHTML = `<div class="empty">${esc(TX().empty)}</div>`;
           return;
         }
         const todayK = dayKey(new Date().toISOString());
@@ -453,7 +657,8 @@
         let html = "";
         [...byDay.keys()].sort().forEach((k) => {
           const items = byDay.get(k).sort((a, b) => groupRank(a.group) - groupRank(b.group) || a.iso.localeCompare(b.iso));
-          html += `<div class="daysec"><div class="dayhead ${k === todayK ? "today" : ""}">${esc(dayLabel(items[0].iso))}</div>`;
+          const isToday = k === todayK;
+          html += `<div class="daysec"><div class="dayhead ${isToday ? "today" : ""}"${isToday ? ` data-today="${esc(TX().today)}"` : ""}>${esc(dayLabel(items[0].iso))}</div>`;
           html += items
             .map((m) => {
               const cls = m.fin ? "fin" : m.live ? "live" : "up";
@@ -463,11 +668,13 @@
                   ? `<span class="score">${m.hs ?? 0}-${m.as ?? 0}</span>`
                   : `<span class="score up">${fmtTime(m.iso)}</span>`;
               const grp = m.group ? `<div class="mgrp">${esc(groupLabel(m.group))}</div>` : "";
+              const hn = m.home.tbd ? TX().tbd : nameFor(m.home);
+              const an = m.away.tbd ? TX().tbd : nameFor(m.away);
               return `<div class="match ${cls}">
-                <div class="mwhen">${m.live ? '<span class="lvdot"></span>LIVE' : fmtTime(m.iso)}${grp}</div>
-                <div class="side">${flagOf(m.home)}<span class="nm">${esc(m.home.ko)}</span></div>
+                <div class="mwhen">${m.live ? '<span class="lvdot"></span>' + esc(TX().live) : fmtTime(m.iso)}${grp}</div>
+                <div class="side">${flagOf(m.home)}<span class="nm">${esc(hn)}</span></div>
                 ${score}
-                <div class="side r"><span class="nm">${esc(m.away.ko)}</span>${flagOf(m.away)}</div>
+                <div class="side r"><span class="nm">${esc(an)}</span>${flagOf(m.away)}</div>
               </div>`;
             })
             .join("");

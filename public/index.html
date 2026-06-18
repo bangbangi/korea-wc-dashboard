@@ -157,31 +157,31 @@
         flex: 1;
       }
 
-      .langtoggle {
-        display: inline-flex;
+      .langselect {
+        flex: none;
+        background: var(--card, #11161f);
+        color: var(--fg, #e7ecf3);
         border: 1px solid var(--line2);
         border-radius: 999px;
-        overflow: hidden;
-        flex: none;
-      }
-      .langtoggle button {
-        background: transparent;
-        color: var(--muted);
-        border: 0;
-        padding: 7px 11px;
+        padding: 7px 28px 7px 12px;
         font-family: var(--font-ui);
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
         line-height: 1;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a93a3' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
       }
-      .langtoggle button.on {
-        background: var(--blue);
-        color: #fff;
-      }
-      .langtoggle button:focus-visible {
+      .langselect:focus-visible {
         outline: 2px solid var(--blue);
         outline-offset: 2px;
+      }
+      [dir="rtl"] .langselect {
+        padding: 7px 12px 7px 28px;
+        background-position: left 10px center;
       }
 
       /* ===== 접근성 유틸 ===== */
@@ -360,8 +360,9 @@
         .homebtn {
           padding: 8px 10px;
         }
-        .langtoggle button {
-          padding: 7px 9px;
+        .langselect {
+          padding: 7px 26px 7px 10px;
+          font-size: 11px;
         }
         .bcast {
           gap: 7px;
@@ -1410,10 +1411,14 @@
           <div class="btext"><strong>월드컵 2026</strong><span class="bsub" id="brandSub">실시간 대시보드</span></div>
         </div>
         <div class="spacer"></div>
-        <div class="langtoggle" id="langToggle" role="group" aria-label="언어 선택 / Language">
-          <button type="button" data-lang="ko" class="on" aria-pressed="true" lang="ko">한국어</button>
-          <button type="button" data-lang="en" aria-pressed="false" lang="en">ENG</button>
-        </div>
+        <select class="langselect" id="langSelect" aria-label="언어 선택 / Language">
+          <option value="ko" lang="ko">한국어</option>
+          <option value="en" lang="en">ENG</option>
+          <option value="es" lang="es">Español</option>
+          <option value="pt" lang="pt">Português</option>
+          <option value="fr" lang="fr">Français</option>
+          <option value="ar" lang="ar">العربية</option>
+        </select>
         <div class="nation">
           <button type="button" id="homeBtn" class="homebtn" title="대한민국으로" aria-label="대한민국으로 이동">
             <span class="hf" aria-hidden="true">🇰🇷</span><span class="ht" id="homeBtnText">대한민국</span></button
@@ -1604,6 +1609,22 @@ Giovanni Reyna = 지오반니 레이나"
       };
       // 문의 폼: Web3Forms 무료 액세스 키 (https://web3forms.com 에서 contact@worldcup.bangbangi.com 로 발급)
       const CONTACT_KEY = "여기에_WEB3FORMS_액세스키";
+      // 지원 언어 + 로케일 (국가명은 Intl.DisplayNames 로 자동 현지화)
+      const LANGS = ["ko", "en", "es", "pt", "fr", "ar"];
+      const LANG_LABEL = { ko: "한국어", en: "ENG", es: "Español", pt: "Português", fr: "Français", ar: "العربية" };
+      const LOCALE = { ko: "ko-KR", en: "en-US", es: "es-ES", pt: "pt-BR", fr: "fr-FR", ar: "ar" };
+      const loc = () => LOCALE[state.lang] || "en-US";
+      const _dnCache = {};
+      function intlCountry(iso2) {
+        if (!iso2 || String(iso2).length !== 2) return "";
+        try {
+          const k = state.lang;
+          if (!_dnCache[k]) _dnCache[k] = new Intl.DisplayNames([loc()], { type: "region" });
+          return _dnCache[k].of(String(iso2).toUpperCase()) || "";
+        } catch (_) {
+          return "";
+        }
+      }
 
       /* UI 라벨 (언어별) */
       const UI = {
@@ -1738,6 +1759,270 @@ Giovanni Reyna = 지오반니 레이나"
           places: (n) => n + " venues",
           seats: (n) => n.toLocaleString(),
           units: { d: "d", h: "h", m: "m", s: "s" },
+        },
+        es: {
+          standings: "Grupo",
+          fixtures: "Calendario · Resultados",
+          scorers: "Goleadores",
+          stadiums: "Estadios",
+          apTitle: "Asistencias · G+A",
+          assistsTitle: "Asistencias",
+          pointsTitle: "G + A",
+          tabAssist: "Asistencias",
+          tabPoint: "G+A",
+          emptyPoints: "Aún no hay datos.",
+          apFrom: (n) => "De " + n + " partidos",
+          charts: "Estadísticas · Gráficos",
+          cTiming: "Minuto del gol",
+          cTeams: "Goles por equipo",
+          cKorea: "Forma del país",
+          cScatter: "Goles vs Asistencias",
+          cTimingNote: (n) => "Por tramos de 15 min · " + n + " goles",
+          cGoalsFor: "A favor",
+          cGoalsAgainst: "En contra",
+          cAxisGoals: "Goles",
+          cAxisAssists: "Asistencias",
+          cW: "G",
+          cD: "E",
+          cL: "P",
+          cGF: "GF",
+          cGA: "GC",
+          cScheduled: "Por jugar",
+          cResW: "G",
+          cResD: "E",
+          cResL: "P",
+          emptyChart: "Aún no hay datos para el gráfico.",
+          sub: "Panel en vivo",
+          live: "EN VIVO",
+          finished: "Finalizado",
+          next: "Próximo partido",
+          recent: "Último resultado",
+          group: "Grupo",
+          connected: "En vivo",
+          demo: "Datos de demo",
+          loading: "Cargando",
+          emptyMatch: "No hay partidos para mostrar.",
+          emptyStand: "Aún no hay clasificación del grupo.",
+          emptyFix: "No hay partidos para mostrar.",
+          allSchedule: "Calendario y resultados completos",
+          contactLink: "Contacto",
+          contactTitle: "Contáctanos",
+          contactHint: "Lo reenviaremos a <strong>contact@worldcup.bangbangi.com</strong>. Te responderemos al correo que indiques.",
+          contactType: "Tipo",
+          optAsk: "Consulta",
+          optSuggest: "Sugerencia",
+          optBug: "Reportar un error",
+          contactSubject: "Asunto",
+          contactEmail: "Correo (obligatorio)",
+          contactMsg: "Mensaje",
+          contactSend: "Enviar",
+          contactClose: "Cerrar",
+          emptyScore: "Aún no hay goles.",
+          emptyStad: "No hay datos de estadios.",
+          updated: "Actualizado",
+          auto: "Actualización automática",
+          refresh: (s) => "Cada " + s + " s",
+          places: (n) => n + " sedes",
+          seats: (n) => n.toLocaleString(),
+          units: { d: "d", h: "h", m: "min", s: "s" },
+        },
+        pt: {
+          standings: "Grupo",
+          fixtures: "Jogos · Resultados",
+          scorers: "Artilheiros",
+          stadiums: "Estádios",
+          apTitle: "Assistências · G+A",
+          assistsTitle: "Assistências",
+          pointsTitle: "G + A",
+          tabAssist: "Assistências",
+          tabPoint: "G+A",
+          emptyPoints: "Ainda não há dados.",
+          apFrom: (n) => "De " + n + " jogos",
+          charts: "Estatísticas · Gráficos",
+          cTiming: "Minuto do gol",
+          cTeams: "Gols por seleção",
+          cKorea: "Desempenho do país",
+          cScatter: "Gols vs Assistências",
+          cTimingNote: (n) => "Por faixas de 15 min · " + n + " gols",
+          cGoalsFor: "Marcados",
+          cGoalsAgainst: "Sofridos",
+          cAxisGoals: "Gols",
+          cAxisAssists: "Assistências",
+          cW: "V",
+          cD: "E",
+          cL: "D",
+          cGF: "GP",
+          cGA: "GC",
+          cScheduled: "A definir",
+          cResW: "V",
+          cResD: "E",
+          cResL: "D",
+          emptyChart: "Ainda não há dados para o gráfico.",
+          sub: "Painel ao vivo",
+          live: "AO VIVO",
+          finished: "Encerrado",
+          next: "Próximo jogo",
+          recent: "Último resultado",
+          group: "Grupo",
+          connected: "Ao vivo",
+          demo: "Dados de demonstração",
+          loading: "Carregando",
+          emptyMatch: "Nenhum jogo para mostrar.",
+          emptyStand: "Ainda não há classificação do grupo.",
+          emptyFix: "Nenhum jogo para mostrar.",
+          allSchedule: "Tabela e resultados completos",
+          contactLink: "Contato",
+          contactTitle: "Fale conosco",
+          contactHint: "Encaminharemos para <strong>contact@worldcup.bangbangi.com</strong>. Responderemos ao e-mail que você informar.",
+          contactType: "Tipo",
+          optAsk: "Dúvida",
+          optSuggest: "Sugestão",
+          optBug: "Relatar um erro",
+          contactSubject: "Assunto",
+          contactEmail: "E-mail (obrigatório)",
+          contactMsg: "Mensagem",
+          contactSend: "Enviar",
+          contactClose: "Fechar",
+          emptyScore: "Ainda não há gols.",
+          emptyStad: "Sem dados de estádios.",
+          updated: "Atualizado",
+          auto: "Atualização automática",
+          refresh: (s) => "A cada " + s + " s",
+          places: (n) => n + " sedes",
+          seats: (n) => n.toLocaleString(),
+          units: { d: "d", h: "h", m: "min", s: "s" },
+        },
+        fr: {
+          standings: "Groupe",
+          fixtures: "Calendrier · Résultats",
+          scorers: "Buteurs",
+          stadiums: "Stades",
+          apTitle: "Passes déc. · B+P",
+          assistsTitle: "Passes décisives",
+          pointsTitle: "B + P",
+          tabAssist: "Passes déc.",
+          tabPoint: "B+P",
+          emptyPoints: "Pas encore de données.",
+          apFrom: (n) => "Sur " + n + " matchs",
+          charts: "Statistiques · Graphiques",
+          cTiming: "Minute des buts",
+          cTeams: "Buts par équipe",
+          cKorea: "Forme de l'équipe",
+          cScatter: "Buts vs Passes déc.",
+          cTimingNote: (n) => "Par tranches de 15 min · " + n + " buts",
+          cGoalsFor: "Marqués",
+          cGoalsAgainst: "Encaissés",
+          cAxisGoals: "Buts",
+          cAxisAssists: "Passes déc.",
+          cW: "V",
+          cD: "N",
+          cL: "D",
+          cGF: "BP",
+          cGA: "BC",
+          cScheduled: "À venir",
+          cResW: "V",
+          cResD: "N",
+          cResL: "D",
+          emptyChart: "Pas encore de données pour le graphique.",
+          sub: "Tableau en direct",
+          live: "EN DIRECT",
+          finished: "Terminé",
+          next: "Prochain match",
+          recent: "Dernier résultat",
+          group: "Groupe",
+          connected: "En direct",
+          demo: "Données de démo",
+          loading: "Chargement",
+          emptyMatch: "Aucun match à afficher.",
+          emptyStand: "Pas encore de classement du groupe.",
+          emptyFix: "Aucun match à afficher.",
+          allSchedule: "Calendrier et résultats complets",
+          contactLink: "Contact",
+          contactTitle: "Nous contacter",
+          contactHint: "Nous le transmettrons à <strong>contact@worldcup.bangbangi.com</strong>. Nous répondrons à l'adresse indiquée.",
+          contactType: "Type",
+          optAsk: "Question",
+          optSuggest: "Suggestion",
+          optBug: "Signaler un bug",
+          contactSubject: "Objet",
+          contactEmail: "E-mail (requis)",
+          contactMsg: "Message",
+          contactSend: "Envoyer",
+          contactClose: "Fermer",
+          emptyScore: "Pas encore de buts.",
+          emptyStad: "Aucune donnée de stade.",
+          updated: "Mis à jour",
+          auto: "Actualisation auto",
+          refresh: (s) => "Toutes les " + s + " s",
+          places: (n) => n + " sites",
+          seats: (n) => n.toLocaleString(),
+          units: { d: "j", h: "h", m: "min", s: "s" },
+        },
+        ar: {
+          standings: "المجموعة",
+          fixtures: "المباريات · النتائج",
+          scorers: "الهدافون",
+          stadiums: "الملاعب",
+          apTitle: "التمريرات الحاسمة · أهداف+تمريرات",
+          assistsTitle: "التمريرات الحاسمة",
+          pointsTitle: "أهداف + تمريرات",
+          tabAssist: "تمريرات حاسمة",
+          tabPoint: "هـ+ت",
+          emptyPoints: "لا توجد بيانات بعد.",
+          apFrom: (n) => "من " + n + " مباريات",
+          charts: "إحصائيات · رسوم",
+          cTiming: "توقيت الأهداف",
+          cTeams: "أهداف كل منتخب",
+          cKorea: "أداء المنتخب",
+          cScatter: "الأهداف مقابل التمريرات",
+          cTimingNote: (n) => "حسب فترات 15 دقيقة · " + n + " هدف",
+          cGoalsFor: "له",
+          cGoalsAgainst: "عليه",
+          cAxisGoals: "أهداف",
+          cAxisAssists: "تمريرات",
+          cW: "ف",
+          cD: "ت",
+          cL: "خ",
+          cGF: "له",
+          cGA: "عليه",
+          cScheduled: "لاحقًا",
+          cResW: "ف",
+          cResD: "ت",
+          cResL: "خ",
+          emptyChart: "لا توجد بيانات للرسم بعد.",
+          sub: "لوحة مباشرة",
+          live: "مباشر",
+          finished: "انتهت",
+          next: "المباراة القادمة",
+          recent: "آخر نتيجة",
+          group: "المجموعة",
+          connected: "مباشر",
+          demo: "بيانات تجريبية",
+          loading: "جارٍ التحميل",
+          emptyMatch: "لا توجد مباريات للعرض.",
+          emptyStand: "لا يوجد ترتيب للمجموعة بعد.",
+          emptyFix: "لا توجد مباريات للعرض.",
+          allSchedule: "الجدول والنتائج الكاملة",
+          contactLink: "اتصل بنا",
+          contactTitle: "اتصل بنا",
+          contactHint: "سنحوّلها إلى <strong>contact@worldcup.bangbangi.com</strong>. سنرد على البريد الذي تدخله.",
+          contactType: "النوع",
+          optAsk: "استفسار",
+          optSuggest: "اقتراح",
+          optBug: "الإبلاغ عن خطأ",
+          contactSubject: "الموضوع",
+          contactEmail: "البريد الإلكتروني (مطلوب)",
+          contactMsg: "الرسالة",
+          contactSend: "إرسال",
+          contactClose: "إغلاق",
+          emptyScore: "لا توجد أهداف بعد.",
+          emptyStad: "لا توجد بيانات ملاعب.",
+          updated: "آخر تحديث",
+          auto: "تحديث تلقائي",
+          refresh: (s) => "كل " + s + " ثانية",
+          places: (n) => n + " مدن",
+          seats: (n) => n.toLocaleString(),
+          units: { d: "ي", h: "س", m: "د", s: "ث" },
         },
       };
       const t = () => UI[state.lang];
@@ -1909,13 +2194,20 @@ Giovanni Reyna = 지오반니 레이나"
         if (state.lang === "ko") {
           return COUNTRY_OVR[normName(code)] || COUNTRY_OVR[normName(en)] || TEAM_DB[normName(code)] || TEAM_DB[normName(en)] || KO_NAMES[code] || en;
         }
-        return en || KO_NAMES[code] || "";
+        if (state.lang === "en") return en || KO_NAMES[code] || "";
+        // es/pt/fr/ar: iso2 기반 자동 현지화 → 실패 시 영어
+        return intlCountry(e.iso2) || en || KO_NAMES[code] || "";
       }
       function displayCountry(name) {
-        if (state.lang !== "ko") return name;
-        const direct = COUNTRY_OVR[normName(name)] || TEAM_DB[normName(name)] || KO_HOST[name];
-        if (direct) return direct;
-        const nat = nationByName(name); // 별칭/코드까지 활용해 한 번 더 매칭 (예: South Korea → 대한민국)
+        if (state.lang === "en") return name;
+        if (state.lang === "ko") {
+          const direct = COUNTRY_OVR[normName(name)] || TEAM_DB[normName(name)] || KO_HOST[name];
+          if (direct) return direct;
+          const nat = nationByName(name); // 별칭/코드까지 활용해 한 번 더 매칭 (예: South Korea → 대한민국)
+          return nat ? displayName(nat) : name;
+        }
+        // es/pt/fr/ar: 팀을 찾아 Intl 현지화
+        const nat = nationByName(name);
         return nat ? displayName(nat) : name;
       }
       const STADIUM_KO_RAW = {
@@ -2376,28 +2668,27 @@ Giovanni Reyna = 지오반니 레이나"
       function savedLang() {
         try {
           const v = localStorage.getItem("wc_lang");
-          return v === "ko" || v === "en" ? v : null;
+          return LANGS.includes(v) ? v : null;
         } catch (_) {
           return null;
         }
       }
       function browserLang() {
         const l = ((typeof navigator !== "undefined" && (navigator.language || navigator.userLanguage)) || "").toLowerCase();
-        return l.indexOf("ko") === 0 ? "ko" : "en";
+        const two = l.slice(0, 2);
+        return LANGS.includes(two) ? two : "en";
       }
       function applyLang(lang, persist) {
-        state.lang = lang === "en" ? "en" : "ko";
+        state.lang = LANGS.includes(lang) ? lang : "ko";
         if (persist) {
           try {
             localStorage.setItem("wc_lang", state.lang);
           } catch (_) {}
         }
         document.documentElement.lang = state.lang;
-        document.querySelectorAll("#langToggle button").forEach((b) => {
-          const on = b.dataset.lang === state.lang;
-          b.classList.toggle("on", on);
-          b.setAttribute("aria-pressed", on ? "true" : "false");
-        });
+        document.documentElement.dir = state.lang === "ar" ? "rtl" : "ltr"; // 아랍어 RTL
+        const sel = document.getElementById("langSelect");
+        if (sel) sel.value = state.lang;
         populatePicker();
         renderAll();
       }
@@ -2412,7 +2703,17 @@ Giovanni Reyna = 지오반니 레이나"
           const d = await r.json().catch(() => ({}));
           const c = (d.country || "").toUpperCase();
           if (!c) return;
-          const want = c === "KR" ? "ko" : "en";
+          // 국가 → 언어 (1순위 언어권 매핑, 그 외 영어)
+          const ES = ["MX", "ES", "AR", "CO", "CL", "PE", "VE", "EC", "GT", "CU", "BO", "DO", "HN", "PY", "SV", "NI", "CR", "PA", "UY", "PR"];
+          const PT = ["BR", "PT", "AO", "MZ"];
+          const FR = ["FR", "BE", "CD", "CI", "CM", "SN", "ML", "NE", "BF", "TG", "BJ", "GN", "MC", "LU", "MG"];
+          const AR = ["SA", "EG", "MA", "DZ", "AE", "IQ", "SY", "JO", "TN", "LY", "LB", "KW", "QA", "OM", "BH", "YE", "SD", "PS", "MR"];
+          let want = "en";
+          if (c === "KR") want = "ko";
+          else if (ES.includes(c)) want = "es";
+          else if (PT.includes(c)) want = "pt";
+          else if (FR.includes(c)) want = "fr";
+          else if (AR.includes(c)) want = "ar";
           if (want !== state.lang) applyLang(want, false);
         } catch (_) {}
       }
@@ -2579,9 +2880,7 @@ Giovanni Reyna = 지오반니 레이나"
         }
         const dayKey = (s) => {
           const d = new Date(s);
-          return Number.isNaN(+d)
-            ? ""
-            : d.toLocaleDateString(state.lang === "ko" ? "ko-KR" : "en-US", { month: "long", day: "numeric", weekday: "short" });
+          return Number.isNaN(+d) ? "" : d.toLocaleDateString(loc(), { month: "long", day: "numeric", weekday: "short" });
         };
         let lastDay = null,
           html = "";
@@ -2618,7 +2917,7 @@ Giovanni Reyna = 지오반니 레이나"
             const hl = matchesNation({ name: s.team, code: s.code }, currentNation());
             return `<tr class="${hl ? "focus" : ""}"><td class="rank">${s.rank}</td>
       <td><div class="tm">${flagInline(s)}<span>${esc(displayPlayer(s.player))}</span></div></td>
-      <td class="muted" style="font-size:12px">${esc(displayName({ name: s.team, code: s.code }))}</td><td class="goals"><em>${s.goals}</em></td></tr>`;
+      <td class="muted" style="font-size:12px">${esc(displayCountry(s.team))}</td><td class="goals"><em>${s.goals}</em></td></tr>`;
           })
           .join("")}</tbody></table>`;
       }
@@ -3001,13 +3300,13 @@ Giovanni Reyna = 지오반니 레이나"
       const pad = (n) => String(n).padStart(2, "0");
       const unit = (v, l) => `<div class="cd"><strong>${pad(v)}</strong><span>${l}</span></div>`;
       function fmtTime(d) {
-        return d.toLocaleTimeString(state.lang === "ko" ? "ko-KR" : "en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        return d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       }
       function fmtDate(s) {
         const d = new Date(s);
         return Number.isNaN(+d)
           ? ""
-          : d.toLocaleString(state.lang === "ko" ? "ko-KR" : "en-US", {
+          : d.toLocaleString(loc(), {
               month: "long",
               day: "numeric",
               weekday: "short",
@@ -3017,18 +3316,16 @@ Giovanni Reyna = 지오반니 레이나"
       }
       function fmtShort(s) {
         const d = new Date(s);
-        return Number.isNaN(+d) ? "" : d.toLocaleTimeString(state.lang === "ko" ? "ko-KR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+        return Number.isNaN(+d) ? "" : d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
       }
       function fmtDay(s) {
         const d = new Date(s);
-        return Number.isNaN(+d)
-          ? ""
-          : d.toLocaleDateString(state.lang === "ko" ? "ko-KR" : "en-US", { month: "numeric", day: "numeric" }) + "<br>" + fmtShort(s);
+        return Number.isNaN(+d) ? "" : d.toLocaleDateString(loc(), { month: "numeric", day: "numeric" }) + "<br>" + fmtShort(s);
       }
       // 보는 사람의 현지 시간대 표기 (예: GMT+9, EDT)
       function localTzLabel() {
         try {
-          const parts = new Intl.DateTimeFormat(state.lang === "ko" ? "ko-KR" : "en-US", { timeZoneName: "short" }).formatToParts(new Date());
+          const parts = new Intl.DateTimeFormat(loc(), { timeZoneName: "short" }).formatToParts(new Date());
           const tz = parts.find((p) => p.type === "timeZoneName");
           return tz ? tz.value : "";
         } catch (_) {
@@ -3308,8 +3605,7 @@ Giovanni Reyna = 지오반니 레이나"
         } else {
           const p = focusKey.split("-").map(Number);
           const dt = new Date(p[0], p[1] - 1, p[2]);
-          dlabel =
-            dt.toLocaleDateString(state.lang === "ko" ? "ko-KR" : "en-US", { month: "long", day: "numeric" }) + (state.lang === "ko" ? " 경기" : "");
+          dlabel = dt.toLocaleDateString(loc(), { month: "long", day: "numeric" }) + (state.lang === "ko" ? " 경기" : "");
         }
         el.innerHTML = `<span class="tlabel">${dlabel}${_tz ? `<span class="tznote">${esc(_tz)}</span>` : ""}</span><div class="chips">${chips}</div>`;
         el.querySelectorAll(".chip").forEach(
@@ -3645,12 +3941,14 @@ Giovanni Reyna = 지오반니 레이나"
       /* ========================= 시작 ========================= */
       state.lang = savedLang() || browserLang();
       document.documentElement.lang = state.lang;
-      document.querySelectorAll("#langToggle button").forEach((b) => b.classList.toggle("on", b.dataset.lang === state.lang));
+      document.documentElement.dir = state.lang === "ar" ? "rtl" : "ltr";
+      (function () {
+        const ls = document.getElementById("langSelect");
+        if (!ls) return;
+        ls.value = state.lang;
+        ls.addEventListener("change", (e) => setLang(e.target.value));
+      })();
       document.getElementById("year").textContent = new Date().getFullYear();
-      document.getElementById("langToggle").addEventListener("click", (e) => {
-        const l = e.target && e.target.dataset && e.target.dataset.lang;
-        if (l) setLang(l);
-      });
       document.getElementById("homeBtn").onclick = () => {
         const k = defaultFocusKey();
         if (k) setFocus(k);
