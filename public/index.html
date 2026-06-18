@@ -1576,16 +1576,17 @@ Giovanni Reyna = 지오반니 레이나"
     <div class="modal" id="contactModal">
       <div class="box">
         <button class="close" id="contactClose" aria-label="닫기">×</button>
-        <h3>문의하기</h3>
-        <p class="hint">남겨주시면 <strong>contact@worldcup.bangbangi.com</strong>으로 전달돼요. 회신은 입력하신 이메일로 드려요.</p>
-        <label for="cType">문의 유형</label>
+        <h3 id="c_title">문의하기</h3>
+        <p class="hint" id="c_hint">남겨주시면 <strong>contact@worldcup.bangbangi.com</strong>으로 전달돼요. 회신은 입력하신 이메일로 드려요.</p>
+        <label for="cType" id="c_typeLabel">문의 유형</label>
         <select id="cType">
-          <option value="문의하기">문의하기</option>
-          <option value="제안하기">제안하기</option>
-          <option value="오류 신고">오류 신고</option>
+          <option value="문의하기" id="c_optAsk">문의하기</option>
+          <option value="제안하기" id="c_optSuggest">제안하기</option>
+          <option value="오류 신고" id="c_optBug">오류 신고</option>
         </select>
-        <label for="cSubject">제목</label><input id="cSubject" /> <label for="cEmail">이메일 (필수)</label
-        ><input id="cEmail" type="email" autocomplete="email" /> <label for="cMsg">내용</label><textarea id="cMsg" rows="4"></textarea>
+        <label for="cSubject" id="c_subjLabel">제목</label><input id="cSubject" /> <label for="cEmail" id="c_emailLabel">이메일 (필수)</label
+        ><input id="cEmail" type="email" autocomplete="email" /> <label for="cMsg" id="c_msgLabel">내용</label
+        ><textarea id="cMsg" rows="4"></textarea>
         <input type="text" id="cHoney" tabindex="-1" autocomplete="off" style="position: absolute; left: -9999px" aria-hidden="true" />
         <button class="act" id="cSend">보내기</button>
         <div class="msg" id="cResult"></div>
@@ -1651,6 +1652,18 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "이 국가의 조 순위 데이터가 아직 없어요.",
           emptyFix: "표시할 일정이 없어요.",
           allSchedule: "전체 일정·결과 보기",
+          contactLink: "문의",
+          contactTitle: "문의하기",
+          contactHint: "남겨주시면 <strong>contact@worldcup.bangbangi.com</strong>으로 전달돼요. 회신은 입력하신 이메일로 드려요.",
+          contactType: "문의 유형",
+          optAsk: "문의하기",
+          optSuggest: "제안하기",
+          optBug: "오류 신고",
+          contactSubject: "제목",
+          contactEmail: "이메일 (필수)",
+          contactMsg: "내용",
+          contactSend: "보내기",
+          contactClose: "닫기",
           emptyScore: "아직 득점 기록이 없어요.",
           emptyStad: "경기장 데이터가 없어요.",
           updated: "갱신",
@@ -1705,6 +1718,18 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "No group standings yet.",
           emptyFix: "No fixtures to show.",
           allSchedule: "Full schedule & results",
+          contactLink: "Contact",
+          contactTitle: "Contact us",
+          contactHint: "We'll forward it to <strong>contact@worldcup.bangbangi.com</strong>. We'll reply to the email you provide.",
+          contactType: "Type",
+          optAsk: "Inquiry",
+          optSuggest: "Suggestion",
+          optBug: "Report a bug",
+          contactSubject: "Subject",
+          contactEmail: "Email (required)",
+          contactMsg: "Message",
+          contactSend: "Send",
+          contactClose: "Close",
           emptyScore: "No goals scored yet.",
           emptyStad: "No stadium data.",
           updated: "Updated",
@@ -2409,6 +2434,27 @@ Giovanni Reyna = 지오반니 레이나"
       }
       function renderLabels() {
         const L = t();
+        // 문의(컨택트) 다국어
+        const setTxt = (id, v) => {
+          const e = document.getElementById(id);
+          if (e) e.textContent = v;
+        };
+        setTxt("contactLink", L.contactLink);
+        const _cl = document.getElementById("contactLink");
+        if (_cl) _cl.setAttribute("aria-label", L.contactTitle);
+        setTxt("c_title", L.contactTitle);
+        const _ch = document.getElementById("c_hint");
+        if (_ch) _ch.innerHTML = L.contactHint;
+        setTxt("c_typeLabel", L.contactType);
+        setTxt("c_optAsk", L.optAsk);
+        setTxt("c_optSuggest", L.optSuggest);
+        setTxt("c_optBug", L.optBug);
+        setTxt("c_subjLabel", L.contactSubject);
+        setTxt("c_emailLabel", L.contactEmail);
+        setTxt("c_msgLabel", L.contactMsg);
+        setTxt("cSend", L.contactSend);
+        const _cc = document.getElementById("contactClose");
+        if (_cc) _cc.setAttribute("aria-label", L.contactClose);
         document.getElementById("t_standings").textContent = L.standings;
         document.getElementById("t_fixtures").textContent = L.fixtures;
         document.getElementById("t_scorers").textContent = L.scorers;
