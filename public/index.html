@@ -2722,6 +2722,7 @@ Giovanni Reyna = 지오반니 레이나"
       function renderAll() {
         renderLabels();
         renderTopbar();
+        populatePicker(); // 포커스가 다른 UI(순위표·선수 클릭 등)로 바뀌어도 상단 select 값 동기화
         renderToday();
         renderBroadcast();
         renderHero();
