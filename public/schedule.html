@@ -501,15 +501,34 @@
         });
       }
 
-      async function refreshGames() {
+      let loadedOnce = false;
+      async function refreshGames(prefetched) {
         if (!BYID) return;
-        let games = [];
+        let games = null,
+          ok = false;
         try {
-          const gj = await fetch("/api/games", { cache: "no-store" })
-            .then((r) => r.json())
-            .catch(() => ({})); // 캐시 우회 → 폴링마다 최신
-          games = gj.games || (Array.isArray(gj) ? gj : []);
+          const gj = prefetched
+            ? await prefetched
+            : await fetch("/api/games", { cache: "no-store" })
+                .then((r) => (r.ok ? r.json() : null))
+                .catch(() => null);
+          if (gj) {
+            games = gj.games || (Array.isArray(gj) ? gj : []);
+            ok = Array.isArray(games);
+          }
         } catch (_) {}
+        // 실패하거나(네트워크/서버) 일시적으로 비어 있으면: 화면을 비우지 말고 빠르게 재시도
+        if (!ok || !games.length) {
+          if (!loadedOnce) {
+            // 첫 로딩 중 — '경기 없음' 대신 '불러오는 중' 유지
+            const ld = document.querySelector("#list .loading");
+            if (ld) ld.textContent = TX().loading;
+            else $("list").innerHTML = `<div class="loading">${esc(TX().loading)}</div>`;
+          } // 이미 로드된 적 있으면 기존 목록 그대로 유지(깜빡임 방지)
+          clearTimeout(scheduleNext._t);
+          scheduleNext._t = setTimeout(() => refreshGames(), 4000); // 빠른 재시도
+          return;
+        }
         const nm = (g, side) => {
           const t = BYID[String(g[side + "_team_id"])];
           if (t) return { ...t, tbd: false };
@@ -535,6 +554,17 @@
           })
           .filter((m) => m.iso)
           .sort((a, b) => a.iso.localeCompare(b.iso));
+        if (!MATCHES.length) {
+          // 응답은 왔지만 파싱 후 0건(이례적) — 기존 유지 + 재시도
+          if (!loadedOnce) {
+            const ld = document.querySelector("#list .loading");
+            if (ld) ld.textContent = TX().loading;
+          }
+          clearTimeout(scheduleNext._t);
+          scheduleNext._t = setTimeout(() => refreshGames(), 4000);
+          return;
+        }
+        loadedOnce = true;
         GROUPS = [...new Set(MATCHES.map((m) => m.group).filter(Boolean))].sort((a, b) => groupRank(a) - groupRank(b) || a.localeCompare(b));
         $("tznote").textContent = tzLabel();
         renderFilters();
@@ -590,8 +620,12 @@
       async function load() {
         initLangSelect();
         setStaticLabels();
+        // games 를 teams·squad 와 동시에 요청(첫 화면 더 빠르게)
+        const gamesP = fetch("/api/games", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
         await loadStatic();
-        await refreshGames();
+        await refreshGames(gamesP);
       }
 
       // 경기 목록을 구조화 데이터(JSON-LD)로 노출 → AI 답변엔진/검색엔진이 일정을 이해·인용 (GEO)
