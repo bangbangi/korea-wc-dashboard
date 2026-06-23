@@ -2466,17 +2466,51 @@ Giovanni Reyna = 지오반니 레이나"
         }
         return rows;
       }
-      function buildScorers(matches) {
+      function buildScorers(matches, points) {
         const tally = {};
-        for (const m of matches) {
+        for (const m of matches || []) {
           if (m.status === "upcoming") continue;
           m.homeScorers.forEach((n) => addGoal(tally, n, m.home));
           m.awayScorers.forEach((n) => addGoal(tally, n, m.away));
         }
+        // Highlightly 포인트의 골 수 병합: 라이브/최신 골이 worldcup26 득점자 문자열보다 앞설 때 반영(더 큰 값 사용)
+        (points || []).forEach((p) => {
+          const g = +p.goals || 0;
+          if (g <= 0 || !p.name) return;
+          const nat = nationByName(p.team);
+          const code = ((nat && nat.code) || "").toUpperCase();
+          let entry = null;
+          for (const k in tally) {
+            const ex = tally[k];
+            if (!scorerNameMatch(ex.player, p.name)) continue;
+            if (code && ex.code && code !== String(ex.code).toUpperCase()) continue; // 같은 팀일 때만
+            entry = ex;
+            break;
+          }
+          if (entry) {
+            if (g > entry.goals) entry.goals = g; // 더 최신/완전한 값으로 갱신
+          } else {
+            tally["hl|" + p.name + "|" + (code || p.team)] = {
+              player: p.name,
+              team: (nat && nat.name) || p.team,
+              code,
+              flag: nat && nat.flag,
+              iso2: nat && nat.iso2,
+              goals: g,
+            };
+          }
+        });
         return Object.values(tally)
           .sort((a, b) => b.goals - a.goals || a.player.localeCompare(b.player))
           .slice(0, 12)
           .map((s, i) => ({ rank: i + 1, ...s }));
+      }
+      // 두 이름이 같은 선수인지(표기 차이 허용: 풀네임/약식/이니셜)
+      function scorerNameMatch(a, b) {
+        if (!a || !b) return false;
+        if (normName(a) === normName(b)) return true;
+        const ca = new Set(keyCandidates(a));
+        return keyCandidates(b).some((k) => ca.has(k));
       }
       function addGoal(tally, name, side) {
         if (!name) return;
@@ -2577,7 +2611,7 @@ Giovanni Reyna = 지오반니 레이나"
         const games = g.status === "fulfilled" ? g.value.games || [] : [];
         state.allFixtures = games.map(normGame).sort(byKickoff);
         state.liveMatches = state.allFixtures.filter((m) => m.status === "live");
-        state.scorers = buildScorers(state.allFixtures);
+        state.scorers = buildScorers(state.allFixtures, state.points);
 
         const groups = gr.status === "fulfilled" ? gr.value.groups || [] : [];
         state.allStandings = buildStandings(groups);
@@ -2979,6 +3013,9 @@ Giovanni Reyna = 지오반니 레이나"
           state.points = (d && d.players) || [];
           state.pointsUpdated = (d && d.updated) || null;
           state.pointsMatches = (d && d.matches) || 0;
+          // 포인트(Highlightly)가 들어오면 득점 순위도 최신 골 수로 다시 집계
+          state.scorers = buildScorers(state.allFixtures, state.points);
+          renderScorers();
           renderPoints();
           renderChart();
         } catch (_) {}

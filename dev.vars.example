@@ -1,0 +1,10 @@
+# 로컬 미리보기(`npm run dev`)용 — 이 파일을 복사해서 `.dev.vars` 로 만들고 키를 넣으세요.
+# (.dev.vars 는 git에 올라가지 않음)
+WORLDCUP_API_KEY=여기에_worldcupapi_키
+
+# 도움/공격포인트 순위용 (Highlightly 무료 키) — 없어도 나머지는 정상 동작
+HIGHLIGHTLY_KEY=여기에_highlightly_키
+
+# (선택) 라이브 점수 전용 — API-Football(api-sports.io) 무료 키. 있으면 라이브 점수 정확도↑(Highlightly보다 우선).
+# 무료 100요청/일. 없으면 Highlightly로 자동 폴백.
+APIFOOTBALL_KEY=여기에_api-football_키
