@@ -2509,12 +2509,17 @@ Giovanni Reyna = 지오반니 레이나"
       function scorerNameMatch(a, b) {
         if (!a || !b) return false;
         if (normName(a) === normName(b)) return true;
+        if (nameSig(a) && nameSig(a) === nameSig(b)) return true; // 토큰 순서만 다른 경우(성-이름 뒤바뀜)
         const ca = new Set(keyCandidates(a));
         return keyCandidates(b).some((k) => ca.has(k));
       }
+      // 이름 시그니처: 정규화 후 토큰을 정렬 → 성-이름 순서 차이(일본/한국식 표기)에도 같은 선수로 인식
+      function nameSig(name) {
+        return normName(name).split(/\s+/).filter(Boolean).sort().join(" ");
+      }
       function addGoal(tally, name, side) {
         if (!name) return;
-        const key = name + "|" + (side.code || side.name);
+        const key = nameSig(name) + "|" + (side.code || side.name);
         if (!tally[key]) tally[key] = { player: name, team: side.name, code: side.code, flag: side.flag, iso2: side.iso2, goals: 0 };
         tally[key].goals++;
       }
