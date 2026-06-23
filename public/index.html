@@ -2500,7 +2500,14 @@ Giovanni Reyna = 지오반니 레이나"
             };
           }
         });
-        return Object.values(tally)
+        // 최종 안전 중복 제거: 같은 식별자(번역 동일) + 같은 팀이면 한 줄로(최댓값)
+        const dedup = {};
+        for (const s of Object.values(tally)) {
+          const k = playerCanonical(s.player) + "|" + ((s.code || s.team || "") + "").toUpperCase();
+          if (!dedup[k]) dedup[k] = s;
+          else if (s.goals > dedup[k].goals) dedup[k] = s;
+        }
+        return Object.values(dedup)
           .sort((a, b) => b.goals - a.goals || a.player.localeCompare(b.player))
           .slice(0, 12)
           .map((s, i) => ({ rank: i + 1, ...s }));
@@ -2508,8 +2515,9 @@ Giovanni Reyna = 지오반니 레이나"
       // 두 이름이 같은 선수인지(표기 차이 허용: 풀네임/약식/이니셜)
       function scorerNameMatch(a, b) {
         if (!a || !b) return false;
+        if (playerCanonical(a) === playerCanonical(b)) return true; // 같은 한글명으로 번역 = 동일 선수
         if (normName(a) === normName(b)) return true;
-        if (nameSig(a) && nameSig(a) === nameSig(b)) return true; // 토큰 순서만 다른 경우(성-이름 뒤바뀜)
+        if (nameSig(a) && nameSig(a) === nameSig(b)) return true; // 토큰 순서만 다른 경우
         const ca = new Set(keyCandidates(a));
         return keyCandidates(b).some((k) => ca.has(k));
       }
@@ -2517,9 +2525,20 @@ Giovanni Reyna = 지오반니 레이나"
       function nameSig(name) {
         return normName(name).split(/\s+/).filter(Boolean).sort().join(" ");
       }
+      // 선수 고유 식별자: 같은 한글명으로 번역되면 같은 선수로 본다(이니셜/풀네임/순서 차이 모두 흡수). 번역 없으면 nameSig.
+      function playerCanonical(name) {
+        if (!name) return "";
+        const cands = keyCandidates(name);
+        for (const src of [PLAYER_OVR_KEYS, PLAYER_DB, KO_PLAYERS_NORM]) {
+          for (const k of cands) {
+            if (src[k]) return "ko:" + normName(src[k]);
+          }
+        }
+        return nameSig(name);
+      }
       function addGoal(tally, name, side) {
         if (!name) return;
-        const key = nameSig(name) + "|" + (side.code || side.name);
+        const key = playerCanonical(name) + "|" + (side.code || side.name);
         if (!tally[key]) tally[key] = { player: name, team: side.name, code: side.code, flag: side.flag, iso2: side.iso2, goals: 0 };
         tally[key].goals++;
       }
