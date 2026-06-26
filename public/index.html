@@ -1450,6 +1450,13 @@
           </h2>
           <div id="standings"></div>
         </div>
+        <div class="card" id="advCard" style="display: none">
+          <h2>
+            <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="t_advance">32강 진출 현황</span>
+            <span class="sub" id="advSub"></span>
+          </h2>
+          <div id="advance"></div>
+        </div>
         <div class="grid cols">
           <div class="card">
             <h2>
@@ -1673,6 +1680,15 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "이 국가의 조 순위 데이터가 아직 없어요.",
           emptyFix: "표시할 일정이 없어요.",
           allSchedule: "전체 일정·결과 보기",
+          advTitle: "32강 진출 현황",
+          advIn: "진출권",
+          advOut: "탈락",
+          advRisk: "탈락 위기",
+          advConfirmed: "진출 확정",
+          advProvisional: "현재 진출권",
+          advRace: "3위 경쟁",
+          advRaceSub: "상위 8팀 진출",
+          advCut: "진출 컷",
           contactLink: "문의",
           contactTitle: "문의하기",
           contactHint: "남겨주시면 <strong>contact@worldcup.bangbangi.com</strong>으로 전달돼요. 회신은 입력하신 이메일로 드려요.",
@@ -1739,6 +1755,15 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "No group standings yet.",
           emptyFix: "No fixtures to show.",
           allSchedule: "Full schedule & results",
+          advTitle: "Round of 32",
+          advIn: "Qualifying",
+          advOut: "Eliminated",
+          advRisk: "At risk",
+          advConfirmed: "Qualified",
+          advProvisional: "Currently in",
+          advRace: "3rd-place race",
+          advRaceSub: "top 8 advance",
+          advCut: "Cut line",
           contactLink: "Contact",
           contactTitle: "Contact us",
           contactHint: "We'll forward it to <strong>contact@worldcup.bangbangi.com</strong>. We'll reply to the email you provide.",
@@ -1805,6 +1830,15 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "Aún no hay clasificación del grupo.",
           emptyFix: "No hay partidos para mostrar.",
           allSchedule: "Calendario y resultados completos",
+          advTitle: "Dieciseisavos",
+          advIn: "Clasifica",
+          advOut: "Eliminado",
+          advRisk: "En riesgo",
+          advConfirmed: "Clasificado",
+          advProvisional: "Por ahora dentro",
+          advRace: "Mejores terceros",
+          advRaceSub: "top 8 pasan",
+          advCut: "Corte",
           contactLink: "Contacto",
           contactTitle: "Contáctanos",
           contactHint: "Lo reenviaremos a <strong>contact@worldcup.bangbangi.com</strong>. Te responderemos al correo que indiques.",
@@ -1871,6 +1905,15 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "Ainda não há classificação do grupo.",
           emptyFix: "Nenhum jogo para mostrar.",
           allSchedule: "Tabela e resultados completos",
+          advTitle: "16 avos",
+          advIn: "Classifica",
+          advOut: "Eliminado",
+          advRisk: "Em risco",
+          advConfirmed: "Classificado",
+          advProvisional: "Por agora dentro",
+          advRace: "Melhores 3º",
+          advRaceSub: "top 8 avançam",
+          advCut: "Corte",
           contactLink: "Contato",
           contactTitle: "Fale conosco",
           contactHint: "Encaminharemos para <strong>contact@worldcup.bangbangi.com</strong>. Responderemos ao e-mail que você informar.",
@@ -1937,6 +1980,15 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "Pas encore de classement du groupe.",
           emptyFix: "Aucun match à afficher.",
           allSchedule: "Calendrier et résultats complets",
+          advTitle: "16es de finale",
+          advIn: "Qualifié",
+          advOut: "Éliminé",
+          advRisk: "En danger",
+          advConfirmed: "Qualifié",
+          advProvisional: "Pour l'instant qualifié",
+          advRace: "Meilleurs 3es",
+          advRaceSub: "top 8 qualifiés",
+          advCut: "Limite",
           contactLink: "Contact",
           contactTitle: "Nous contacter",
           contactHint: "Nous le transmettrons à <strong>contact@worldcup.bangbangi.com</strong>. Nous répondrons à l'adresse indiquée.",
@@ -2003,6 +2055,15 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "لا يوجد ترتيب للمجموعة بعد.",
           emptyFix: "لا توجد مباريات للعرض.",
           allSchedule: "الجدول والنتائج الكاملة",
+          advTitle: "دور الـ32",
+          advIn: "متأهل",
+          advOut: "خارج",
+          advRisk: "في خطر",
+          advConfirmed: "تأهل",
+          advProvisional: "متأهل حاليًا",
+          advRace: "أفضل ثوالث",
+          advRaceSub: "أفضل 8 يتأهلون",
+          advCut: "خط القطع",
           contactLink: "اتصل بنا",
           contactTitle: "اتصل بنا",
           contactHint: "سنحوّلها إلى <strong>contact@worldcup.bangbangi.com</strong>. سنرد على البريد الذي تدخله.",
@@ -2785,6 +2846,7 @@ Giovanni Reyna = 지오반니 레이나"
         renderBroadcast();
         renderHero();
         renderStandings();
+        renderAdvance();
         renderFixtures();
         renderScorers();
         renderPoints();
@@ -2816,6 +2878,8 @@ Giovanni Reyna = 지오반니 레이나"
         const _cc = document.getElementById("contactClose");
         if (_cc) _cc.setAttribute("aria-label", L.contactClose);
         document.getElementById("t_standings").textContent = L.standings;
+        const tadv = document.getElementById("t_advance");
+        if (tadv) tadv.textContent = L.advTitle;
         document.getElementById("t_fixtures").textContent = L.fixtures;
         document.getElementById("t_scorers").textContent = L.scorers;
         const tas = document.getElementById("t_assists");
@@ -2926,6 +2990,145 @@ Giovanni Reyna = 지오반니 레이나"
       <td class="num">${r.gd > 0 ? "+" : ""}${r.gd}</td><td class="num pts">${r.pts}</td></tr>`,
           )
           .join("")}</tbody></table>`;
+      }
+      /* ===== 32강 진출 시나리오(2026: 각 조 1·2위 + 3위 중 상위 8팀) ===== */
+      function computeAdvance() {
+        const all = state.allStandings || [];
+        if (!all.length) return null;
+        const focusRow = all.find((r) => sideIsFocus(r));
+        if (!focusRow || !focusRow.pos) return null;
+        const grp = focusRow.group,
+          pos = focusRow.pos;
+        const thirds = all
+          .filter((r) => r.pos === 3)
+          .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || String(a.name).localeCompare(String(b.name)))
+          .map((r, i) => ({ row: r, trank: i + 1 }));
+        const cut = 8;
+        const focusThird = thirds.find((x) => sideIsFocus(x.row)) || null;
+        let status;
+        if (pos === 1 || pos === 2) status = "top2";
+        else if (pos === 3) status = focusThird && focusThird.trank <= cut ? "third_in" : "third_out";
+        else status = "last";
+        const groupRows = all.filter((r) => String(r.group) === String(grp));
+        const groupDone = groupRows.length >= 4 && groupRows.every((r) => r.p >= 3);
+        return { grp, pos, status, thirds, focusThird, cut, groupDone };
+      }
+      function renderAdvance() {
+        const card = document.getElementById("advCard"),
+          box = document.getElementById("advance"),
+          subEl = document.getElementById("advSub");
+        if (!card || !box) return;
+        const info = computeAdvance();
+        if (!info) {
+          card.style.display = "none";
+          return;
+        }
+        card.style.display = "";
+        const L = t(),
+          ko = state.lang === "ko",
+          n = currentNation();
+        if (subEl) subEl.textContent = n ? displayName(n) : "";
+        const posLabel = (p) => (ko ? p + "위" : "#" + p);
+        const grpTxt = (L.group || "Group") + " " + info.grp;
+        let badge, bg, fg, line;
+        if (info.status === "top2") {
+          badge = L.advIn;
+          bg = "var(--gold)";
+          fg = "#10131c";
+          line = grpTxt + " · " + posLabel(info.pos) + " — " + (info.groupDone ? L.advConfirmed : L.advProvisional);
+        } else if (info.status === "third_in") {
+          badge = L.advIn;
+          bg = "var(--gold)";
+          fg = "#10131c";
+          line = grpTxt + " · " + posLabel(3) + " — " + L.advRace + " " + posLabel(info.focusThird.trank);
+        } else if (info.status === "third_out") {
+          badge = L.advRisk;
+          bg = "var(--live)";
+          fg = "#fff";
+          line = grpTxt + " · " + posLabel(3) + " — " + L.advRace + " " + posLabel(info.focusThird.trank);
+        } else {
+          badge = L.advRisk;
+          bg = "var(--live)";
+          fg = "#fff";
+          line = grpTxt + " · " + posLabel(info.pos) + " — " + L.advOut;
+        }
+        let html =
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">' +
+          '<span style="font-weight:700;font-size:13px;padding:4px 12px;border-radius:999px;background:' +
+          bg +
+          ";color:" +
+          fg +
+          '">' +
+          esc(badge) +
+          "</span>" +
+          '<span style="color:var(--muted);font-size:14px">' +
+          esc(line) +
+          "</span></div>";
+        if (info.status === "third_in" || info.status === "third_out") {
+          html += '<div style="font-size:13px;color:var(--muted);margin:12px 0 6px">' + esc(L.advRace) + " · " + esc(L.advRaceSub) + "</div>";
+          html +=
+            '<div style="display:flex;font-size:11px;color:var(--muted);padding:0 10px 4px">' +
+            '<span style="width:26px">#</span><span style="width:32px">' +
+            esc(L.group || "") +
+            '</span><span style="flex:1">' +
+            (ko ? "국가" : "Team") +
+            '</span><span style="width:38px;text-align:center">' +
+            (ko ? "승점" : "Pts") +
+            '</span><span style="width:46px;text-align:center">' +
+            (ko ? "득실" : "GD") +
+            '</span><span style="width:34px;text-align:center">' +
+            (ko ? "득점" : "GF") +
+            "</span></div>";
+          info.thirds.forEach((x) => {
+            const r = x.row,
+              foc = sideIsFocus(r),
+              inCut = x.trank <= info.cut;
+            const rowbg = foc ? "rgba(233,185,74,0.14)" : inCut ? "var(--surface2)" : "transparent";
+            const op = inCut || foc ? "1" : "0.5";
+            const gds = (r.gd > 0 ? "+" : "") + r.gd;
+            html +=
+              '<div style="display:flex;align-items:center;padding:7px 10px;border-radius:8px;margin-bottom:2px;font-size:13px;opacity:' +
+              op +
+              ";background:" +
+              rowbg +
+              (foc ? ";border:1px solid var(--gold)" : "") +
+              '">' +
+              '<span style="width:26px;font-weight:600;color:' +
+              (foc ? "var(--gold)" : "var(--muted)") +
+              '">' +
+              x.trank +
+              "</span>" +
+              '<span style="width:32px"><span style="font-size:11px;padding:1px 6px;border-radius:6px;background:var(--surface);color:var(--muted)">' +
+              esc(r.group) +
+              "</span></span>" +
+              '<span style="flex:1;color:var(--text)' +
+              (foc ? ";font-weight:700" : "") +
+              '">' +
+              flagInline(r) +
+              " " +
+              esc(displayName(r)) +
+              (foc ? " ◀" : "") +
+              "</span>" +
+              '<span style="width:38px;text-align:center;font-weight:600;color:var(--text)">' +
+              r.pts +
+              "</span>" +
+              '<span style="width:46px;text-align:center;color:var(--muted)">' +
+              gds +
+              "</span>" +
+              '<span style="width:34px;text-align:center;color:var(--muted)">' +
+              r.gf +
+              "</span></div>";
+            if (x.trank === info.cut) {
+              html +=
+                '<div style="display:flex;align-items:center;gap:8px;margin:6px 2px;color:var(--gold);font-size:11px;font-weight:600"><span style="flex:1;height:1px;background:var(--line2)"></span><span>▲ ' +
+                esc(L.advCut) +
+                " (" +
+                posLabel(info.cut) +
+                ')</span><span style="flex:1;height:1px;background:var(--line2)"></span></div>';
+            }
+          });
+        }
+        box.innerHTML = html;
       }
       function renderFixtures() {
         const L = t(),
