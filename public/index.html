@@ -1688,6 +1688,8 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "현재 진출권",
           advRace: "3위 경쟁",
           advRaceSub: "상위 8팀 진출",
+          advFinal: "확정",
+          advPending: "유동",
           advCut: "진출 컷",
           contactLink: "문의",
           contactTitle: "문의하기",
@@ -1763,6 +1765,8 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Currently in",
           advRace: "3rd-place race",
           advRaceSub: "top 8 advance",
+          advFinal: "Final",
+          advPending: "Pending",
           advCut: "Cut line",
           contactLink: "Contact",
           contactTitle: "Contact us",
@@ -1838,6 +1842,8 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Por ahora dentro",
           advRace: "Mejores terceros",
           advRaceSub: "top 8 pasan",
+          advFinal: "Final",
+          advPending: "Pendiente",
           advCut: "Corte",
           contactLink: "Contacto",
           contactTitle: "Contáctanos",
@@ -1913,6 +1919,8 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Por agora dentro",
           advRace: "Melhores 3º",
           advRaceSub: "top 8 avançam",
+          advFinal: "Final",
+          advPending: "Pendente",
           advCut: "Corte",
           contactLink: "Contato",
           contactTitle: "Fale conosco",
@@ -1988,6 +1996,8 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Pour l'instant qualifié",
           advRace: "Meilleurs 3es",
           advRaceSub: "top 8 qualifiés",
+          advFinal: "Final",
+          advPending: "En cours",
           advCut: "Limite",
           contactLink: "Contact",
           contactTitle: "Nous contacter",
@@ -2063,6 +2073,8 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "متأهل حاليًا",
           advRace: "أفضل ثوالث",
           advRaceSub: "أفضل 8 يتأهلون",
+          advFinal: "نهائي",
+          advPending: "غير محسوم",
           advCut: "خط القطع",
           contactLink: "اتصل بنا",
           contactTitle: "اتصل بنا",
@@ -2999,18 +3011,22 @@ Giovanni Reyna = 지오반니 레이나"
         if (!focusRow || !focusRow.pos) return null;
         const grp = focusRow.group,
           pos = focusRow.pos;
+        const doneByGroup = {};
+        [...new Set(all.map((r) => String(r.group)))].forEach((gk) => {
+          const rows = all.filter((r) => String(r.group) === gk);
+          doneByGroup[gk] = rows.length >= 4 && rows.every((r) => r.p >= 3);
+        });
         const thirds = all
           .filter((r) => r.pos === 3)
           .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || String(a.name).localeCompare(String(b.name)))
-          .map((r, i) => ({ row: r, trank: i + 1 }));
+          .map((r, i) => ({ row: r, trank: i + 1, done: !!doneByGroup[String(r.group)] }));
         const cut = 8;
         const focusThird = thirds.find((x) => sideIsFocus(x.row)) || null;
         let status;
         if (pos === 1 || pos === 2) status = "top2";
         else if (pos === 3) status = focusThird && focusThird.trank <= cut ? "third_in" : "third_out";
         else status = "last";
-        const groupRows = all.filter((r) => String(r.group) === String(grp));
-        const groupDone = groupRows.length >= 4 && groupRows.every((r) => r.p >= 3);
+        const groupDone = !!doneByGroup[String(grp)];
         return { grp, pos, status, thirds, focusThird, cut, groupDone };
       }
       function renderAdvance() {
@@ -3078,6 +3094,8 @@ Giovanni Reyna = 지오반니 레이나"
             (ko ? "득실" : "GD") +
             '</span><span style="width:34px;text-align:center">' +
             (ko ? "득점" : "GF") +
+            '</span><span style="width:48px;text-align:right">' +
+            (ko ? "상태" : "Status") +
             "</span></div>";
           info.thirds.forEach((x) => {
             const r = x.row,
@@ -3117,6 +3135,11 @@ Giovanni Reyna = 지오반니 레이나"
               "</span>" +
               '<span style="width:34px;text-align:center;color:var(--muted)">' +
               r.gf +
+              "</span>" +
+              '<span style="width:48px;text-align:right;font-size:11px;color:' +
+              (x.done ? "var(--muted)" : "var(--gold)") +
+              '">' +
+              esc(x.done ? L.advFinal : L.advPending) +
               "</span></div>";
             if (x.trank === info.cut) {
               html +=
