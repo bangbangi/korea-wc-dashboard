@@ -1688,8 +1688,9 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "현재 진출권",
           advRace: "3위 경쟁",
           advRaceSub: "상위 8팀 진출",
-          advFinal: "확정",
-          advPending: "유동",
+          advLockIn: "진출 확정",
+          advLockOut: "탈락 확정",
+          advFlux: "경쟁 중",
           advCut: "진출 컷",
           contactLink: "문의",
           contactTitle: "문의하기",
@@ -1765,8 +1766,9 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Currently in",
           advRace: "3rd-place race",
           advRaceSub: "top 8 advance",
-          advFinal: "Final",
-          advPending: "Pending",
+          advLockIn: "Through",
+          advLockOut: "Out",
+          advFlux: "Open",
           advCut: "Cut line",
           contactLink: "Contact",
           contactTitle: "Contact us",
@@ -1842,8 +1844,9 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Por ahora dentro",
           advRace: "Mejores terceros",
           advRaceSub: "top 8 pasan",
-          advFinal: "Final",
-          advPending: "Pendiente",
+          advLockIn: "Clasifica",
+          advLockOut: "Fuera",
+          advFlux: "En disputa",
           advCut: "Corte",
           contactLink: "Contacto",
           contactTitle: "Contáctanos",
@@ -1919,8 +1922,9 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Por agora dentro",
           advRace: "Melhores 3º",
           advRaceSub: "top 8 avançam",
-          advFinal: "Final",
-          advPending: "Pendente",
+          advLockIn: "Classifica",
+          advLockOut: "Fora",
+          advFlux: "Em disputa",
           advCut: "Corte",
           contactLink: "Contato",
           contactTitle: "Fale conosco",
@@ -1996,8 +2000,9 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "Pour l'instant qualifié",
           advRace: "Meilleurs 3es",
           advRaceSub: "top 8 qualifiés",
-          advFinal: "Final",
-          advPending: "En cours",
+          advLockIn: "Qualifié",
+          advLockOut: "Éliminé",
+          advFlux: "En lice",
           advCut: "Limite",
           contactLink: "Contact",
           contactTitle: "Nous contacter",
@@ -2073,8 +2078,9 @@ Giovanni Reyna = 지오반니 레이나"
           advProvisional: "متأهل حاليًا",
           advRace: "أفضل ثوالث",
           advRaceSub: "أفضل 8 يتأهلون",
-          advFinal: "نهائي",
-          advPending: "غير محسوم",
+          advLockIn: "تأهل",
+          advLockOut: "خرج",
+          advFlux: "متنافس",
           advCut: "خط القطع",
           contactLink: "اتصل بنا",
           contactTitle: "اتصل بنا",
@@ -3004,6 +3010,106 @@ Giovanni Reyna = 지오반니 레이나"
           .join("")}</tbody></table>`;
       }
       /* ===== 32강 진출 시나리오(2026: 각 조 1·2위 + 3위 중 상위 8팀) ===== */
+      // 가능한 3위 승점들(남은 경기 W/D/L 전수): 4팀 중 3번째로 높은 승점 집합
+      function possibleThirdPts(teamPts, remPairs) {
+        const res = new Set();
+        const m = remPairs.length,
+          combos = Math.pow(3, m);
+        for (let c = 0; c < combos; c++) {
+          const pts = teamPts.slice();
+          let x = c;
+          for (let k = 0; k < m; k++) {
+            const o = x % 3;
+            x = (x / 3) | 0;
+            const [i, j] = remPairs[k];
+            if (o === 0) pts[i] += 3;
+            else if (o === 1) pts[j] += 3;
+            else {
+              pts[i] += 1;
+              pts[j] += 1;
+            }
+          }
+          const sorted = pts.slice().sort((a, b) => b - a);
+          if (sorted.length >= 3) res.add(sorted[2]);
+        }
+        return [...res].sort((a, b) => a - b);
+      }
+      function cmpStand(a, b) {
+        return a.pts - b.pts || a.gd - b.gd || a.gf - b.gf;
+      }
+      // 조별 컨텍스트: 팀 목록 + 남은 경기 + 완료 여부 + (완료 시) 3위 행
+      function buildGroupCtx(all) {
+        const fixtures = state.allFixtures || [];
+        const byGroup = {};
+        all.forEach((r) => {
+          const gk = String(r.group);
+          (byGroup[gk] = byGroup[gk] || { rows: [], idxByCode: {}, idxByName: {} }).rows.push(r);
+        });
+        Object.values(byGroup).forEach((g) => {
+          g.rows.forEach((r, i) => {
+            if (r.code) g.idxByCode[String(r.code).toUpperCase()] = i;
+            g.idxByName[normName(r.name)] = i;
+          });
+          g.remaining = [];
+        });
+        fixtures.forEach((m) => {
+          if (m.status === "finished" || !m.group) return;
+          const g = byGroup[String(m.group)];
+          if (!g) return;
+          const fi = (s) =>
+            s && s.code && g.idxByCode[String(s.code).toUpperCase()] != null
+              ? g.idxByCode[String(s.code).toUpperCase()]
+              : g.idxByName[normName(s && s.name)];
+          const i = fi(m.home),
+            j = fi(m.away);
+          if (i != null && j != null && i !== j) g.remaining.push([i, j]);
+        });
+        Object.values(byGroup).forEach((g) => {
+          g.finished = g.remaining.length === 0;
+          g.thirdRow = g.rows.slice().sort((a, b) => cmpStand(b, a))[2] || null;
+          g.thirdPtsSet = g.finished
+            ? g.thirdRow
+              ? [g.thirdRow.pts]
+              : []
+            : possibleThirdPts(
+                g.rows.map((r) => r.pts),
+                g.remaining,
+              );
+        });
+        return byGroup;
+      }
+      // 3위팀 T의 진출 확정/탈락 확정/경쟁 중 판정 (상위 8팀 진출)
+      function qualStatus(T, byGroup, cut) {
+        const myGroup = String(T.group);
+        if (!byGroup[myGroup] || !byGroup[myGroup].finished) return "flux"; // 내 조 진행중이면 미정
+        let guaranteedAbove = 0,
+          possibleAbove = 0;
+        for (const gk in byGroup) {
+          if (gk === myGroup) continue;
+          const g = byGroup[gk];
+          if (g.finished) {
+            const above = g.thirdRow && cmpStand(g.thirdRow, T) > 0;
+            if (above) {
+              guaranteedAbove++;
+              possibleAbove++;
+            }
+          } else {
+            const set = g.thirdPtsSet;
+            if (!set.length) continue;
+            const minP = set[0],
+              maxP = set[set.length - 1];
+            if (minP > T.pts) {
+              guaranteedAbove++;
+              possibleAbove++;
+            } else if (maxP > T.pts || set.indexOf(T.pts) >= 0) {
+              possibleAbove++; // 승점 동률 가능 → 득실로 뒤집힐 수 있어 보수적으로 '가능'
+            }
+          }
+        }
+        if (possibleAbove + 1 <= cut) return "in"; // 최악의 경우에도 컷 안 → 진출 확정
+        if (guaranteedAbove + 1 > cut) return "out"; // 최선의 경우에도 컷 밖 → 탈락 확정
+        return "flux";
+      }
       function computeAdvance() {
         const all = state.allStandings || [];
         if (!all.length) return null;
@@ -3011,22 +3117,18 @@ Giovanni Reyna = 지오반니 레이나"
         if (!focusRow || !focusRow.pos) return null;
         const grp = focusRow.group,
           pos = focusRow.pos;
-        const doneByGroup = {};
-        [...new Set(all.map((r) => String(r.group)))].forEach((gk) => {
-          const rows = all.filter((r) => String(r.group) === gk);
-          doneByGroup[gk] = rows.length >= 4 && rows.every((r) => r.p >= 3);
-        });
+        const cut = 8;
+        const byGroup = buildGroupCtx(all);
         const thirds = all
           .filter((r) => r.pos === 3)
           .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || String(a.name).localeCompare(String(b.name)))
-          .map((r, i) => ({ row: r, trank: i + 1, done: !!doneByGroup[String(r.group)] }));
-        const cut = 8;
+          .map((r, i) => ({ row: r, trank: i + 1, qstatus: qualStatus(r, byGroup, cut) }));
         const focusThird = thirds.find((x) => sideIsFocus(x.row)) || null;
         let status;
         if (pos === 1 || pos === 2) status = "top2";
         else if (pos === 3) status = focusThird && focusThird.trank <= cut ? "third_in" : "third_out";
         else status = "last";
-        const groupDone = !!doneByGroup[String(grp)];
+        const groupDone = !!(byGroup[String(grp)] && byGroup[String(grp)].finished);
         return { grp, pos, status, thirds, focusThird, cut, groupDone };
       }
       function renderAdvance() {
@@ -3094,7 +3196,7 @@ Giovanni Reyna = 지오반니 레이나"
             (ko ? "득실" : "GD") +
             '</span><span style="width:34px;text-align:center">' +
             (ko ? "득점" : "GF") +
-            '</span><span style="width:48px;text-align:right">' +
+            '</span><span style="width:64px;text-align:right">' +
             (ko ? "상태" : "Status") +
             "</span></div>";
           info.thirds.forEach((x) => {
@@ -3136,10 +3238,10 @@ Giovanni Reyna = 지오반니 레이나"
               '<span style="width:34px;text-align:center;color:var(--muted)">' +
               r.gf +
               "</span>" +
-              '<span style="width:48px;text-align:right;font-size:11px;color:' +
-              (x.done ? "var(--muted)" : "var(--gold)") +
+              '<span style="width:64px;text-align:right;font-size:11px;color:' +
+              (x.qstatus === "in" ? "#46c267" : x.qstatus === "out" ? "var(--live)" : "var(--muted)") +
               '">' +
-              esc(x.done ? L.advFinal : L.advPending) +
+              esc(x.qstatus === "in" ? L.advLockIn : x.qstatus === "out" ? L.advLockOut : L.advFlux) +
               "</span></div>";
             if (x.trank === info.cut) {
               html +=
