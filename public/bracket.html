@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>월드컵 2026 대진표 (32강~결승) | worldcup.bangbangi.com</title>
+    <meta name="description" content="2026 FIFA 월드컵 토너먼트 대진표 — 32강부터 결승까지 한눈에. 접속 지역 현지 시간과 실시간 결과가 반영됩니다." />
+    <meta
+      name="keywords"
+      content="월드컵 2026 대진표, 월드컵 토너먼트, 32강 대진, 16강 대진, 8강 대진, 결승 대진, World Cup 2026 bracket, knockout bracket"
+    />
+    <link rel="canonical" href="https://worldcup.bangbangi.com/bracket" />
+    <meta property="og:title" content="월드컵 2026 대진표 (32강~결승)" />
+    <meta property="og:description" content="토너먼트 대진표 · 현지 시간 · 실시간 결과" />
+    <meta property="og:url" content="https://worldcup.bangbangi.com/bracket" />
+    <meta property="og:image" content="https://worldcup.bangbangi.com/og-image.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #0b1120;
+        --surface: #131c33;
+        --surface2: #1a2444;
+        --line: rgba(255, 255, 255, 0.09);
+        --line2: rgba(255, 255, 255, 0.16);
+        --text: #edf1f8;
+        --muted: #8b95ad;
+        --blue: #3a74e6;
+        --gold: #e9b94a;
+        --live: #ff3355;
+        --green: #1fbf75;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Pretendard",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          "Noto Sans KR",
+          sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 22px 16px 90px;
+      }
+      header.top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      h1 {
+        font-size: 21px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .bars {
+        display: inline-flex;
+        gap: 3px;
+      }
+      .bars span {
+        width: 4px;
+        height: 17px;
+        border-radius: 2px;
+        background: var(--blue);
+      }
+      .bars span:nth-child(2) {
+        background: var(--gold);
+      }
+      .bars span:nth-child(3) {
+        background: var(--text);
+      }
+      a.back {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      a.back:hover {
+        color: var(--text);
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 6px 0 2px;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 12px 0 6px;
+      }
+      .langsel {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--line2);
+        border-radius: 9px;
+        padding: 6px 9px;
+        font-size: 13px;
+      }
+      .navlink {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+        border: 1px solid var(--line2);
+        border-radius: 9px;
+        padding: 6px 10px;
+      }
+      .navlink:hover {
+        color: var(--text);
+        border-color: var(--muted);
+      }
+      #tznote {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .bwrap {
+        margin-top: 14px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+        padding-bottom: 6px;
+      }
+      .binner {
+        position: relative;
+        display: flex;
+        gap: 40px;
+        min-width: max-content;
+        padding: 4px 6px 8px;
+        align-items: stretch;
+      }
+      .round {
+        display: flex;
+        flex-direction: column;
+        min-width: 196px;
+      }
+      .rtitle {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.3px;
+      }
+      .rcol {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+      }
+      .mcard {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 8px 11px;
+      }
+      .mcard.dim {
+        opacity: 0.82;
+      }
+      .when {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .when .lvpill {
+        color: #fff;
+        background: var(--live);
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 1px 7px;
+        font-size: 10px;
+        letter-spacing: 0.4px;
+      }
+      .when .ft {
+        color: var(--muted);
+      }
+      .team {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+        font-size: 14px;
+        min-width: 0;
+      }
+      .team .fl-img {
+        width: 21px;
+        height: 14px;
+        object-fit: cover;
+        border-radius: 2px;
+        flex: 0 0 auto;
+      }
+      .team .fl {
+        font-size: 16px;
+        flex: 0 0 auto;
+      }
+      .team .tbdfl {
+        width: 18px;
+        height: 20px;
+        flex: 0 0 auto;
+        border-radius: 4px 4px 6px 6px;
+        background: var(--surface2);
+        display: inline-block;
+      }
+      .team .nm {
+        flex: 1 1 auto;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .team .sc {
+        font-weight: 700;
+        min-width: 15px;
+        text-align: right;
+        color: var(--text);
+      }
+      .team.win .nm {
+        font-weight: 700;
+      }
+      .team.win .wmark {
+        color: var(--gold);
+        font-size: 12px;
+      }
+      .team.lose {
+        opacity: 0.48;
+      }
+      .team.tbd .nm {
+        color: var(--muted);
+      }
+      svg.conn {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+      svg.conn path {
+        stroke: var(--line2);
+        stroke-width: 2;
+        fill: none;
+      }
+
+      .third {
+        margin-top: 22px;
+        max-width: 360px;
+      }
+      .third .lbl {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 7px;
+      }
+      .scrollhint {
+        position: sticky;
+        right: 0;
+      }
+      .loading {
+        padding: 40px 0;
+        text-align: center;
+        color: var(--muted);
+      }
+      @media (max-width: 560px) {
+        .wrap {
+          padding: 18px 10px 80px;
+        }
+        .round {
+          min-width: 172px;
+        }
+        .binner {
+          gap: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <h1>
+          <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span> <span id="pgTitle">월드컵 2026 대진표</span>
+        </h1>
+        <a class="back" id="backLink" href="/">← 대시보드로</a>
+      </header>
+      <div class="sub" id="subLine"></div>
+      <div class="toolbar">
+        <a class="navlink" id="schedLink" href="/schedule">일정 · 결과</a>
+        <select class="langsel" id="langSel" aria-label="language"></select>
+        <span id="tznote"></span>
+      </div>
+
+      <div class="bwrap" id="bwrap">
+        <div class="loading" id="loading">불러오는 중…</div>
+        <div class="binner" id="binner" style="display: none"></div>
+      </div>
+
+      <div class="third" id="thirdBox" style="display: none">
+        <div class="lbl" id="thirdLbl"></div>
+        <div id="thirdCard"></div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+      // ---------- 다국어 (메인과 wc_lang 연동) ----------
+      const LANGS = ["ko", "en", "es", "pt", "fr", "ar"];
+      const LANG_LABEL = { ko: "한국어", en: "ENG", es: "Español", pt: "Português", fr: "Français", ar: "العربية" };
+      const LOCALE = { ko: "ko-KR", en: "en-US", es: "es-ES", pt: "pt-BR", fr: "fr-FR", ar: "ar" };
+      let LANG = (function () {
+        try {
+          const v = localStorage.getItem("wc_lang");
+          if (LANGS.includes(v)) return v;
+        } catch (_) {}
+        const two = (((typeof navigator !== "undefined" && navigator.language) || "") + "").slice(0, 2).toLowerCase();
+        return LANGS.includes(two) ? two : "ko";
+      })();
+      const loc = () => LOCALE[LANG] || "en-US";
+      const _dn = {};
+      function intlCountry(iso2) {
+        if (!iso2) return "";
+        const k = loc() + "|" + iso2;
+        try {
+          if (!_dn[k]) _dn[k] = new Intl.DisplayNames([loc()], { type: "region" });
+          return _dn[k].of(String(iso2).toUpperCase()) || "";
+        } catch (_) {
+          return "";
+        }
+      }
+      const T = {
+        ko: {
+          title: "월드컵 2026 대진표",
+          back: "← 대시보드로",
+          sub: "32강부터 결승까지 · 현지 시간 · 실시간",
+          sched: "일정 · 결과",
+          tbd: "미정",
+          loading: "불러오는 중…",
+          empty: "대진표를 준비 중이에요.",
+          tzSuffix: " 기준",
+          live: "LIVE",
+          ft: "풀타임",
+          today: "오늘",
+          tomorrow: "내일",
+          R32: "32강",
+          R16: "16강",
+          QF: "8강",
+          SF: "4강",
+          "3RD": "3·4위전",
+          FINAL: "결승",
+        },
+        en: {
+          title: "World Cup 2026 Bracket",
+          back: "← Dashboard",
+          sub: "Round of 32 to Final · local time · live",
+          sched: "Schedule",
+          tbd: "TBD",
+          loading: "Loading…",
+          empty: "Bracket coming soon.",
+          tzSuffix: "",
+          live: "LIVE",
+          ft: "FT",
+          today: "Today",
+          tomorrow: "Tomorrow",
+          R32: "Round of 32",
+          R16: "Round of 16",
+          QF: "Quarter-finals",
+          SF: "Semi-finals",
+          "3RD": "Third place",
+          FINAL: "Final",
+        },
+        es: {
+          title: "Cuadro Mundial 2026",
+          back: "← Panel",
+          sub: "De dieciseisavos a la final · hora local · en vivo",
+          sched: "Calendario",
+          tbd: "Por definir",
+          loading: "Cargando…",
+          empty: "Cuadro próximamente.",
+          tzSuffix: "",
+          live: "EN VIVO",
+          ft: "FIN",
+          today: "Hoy",
+          tomorrow: "Mañana",
+          R32: "Dieciseisavos",
+          R16: "Octavos",
+          QF: "Cuartos",
+          SF: "Semifinales",
+          "3RD": "Tercer puesto",
+          FINAL: "Final",
+        },
+        pt: {
+          title: "Chaveamento Copa 2026",
+          back: "← Painel",
+          sub: "Dos 16 avos à final · hora local · ao vivo",
+          sched: "Calendário",
+          tbd: "A definir",
+          loading: "Carregando…",
+          empty: "Chaveamento em breve.",
+          tzSuffix: "",
+          live: "AO VIVO",
+          ft: "FIM",
+          today: "Hoje",
+          tomorrow: "Amanhã",
+          R32: "16 avos",
+          R16: "Oitavas",
+          QF: "Quartas",
+          SF: "Semifinais",
+          "3RD": "Terceiro lugar",
+          FINAL: "Final",
+        },
+        fr: {
+          title: "Tableau Coupe du monde 2026",
+          back: "← Tableau de bord",
+          sub: "Des 16es à la finale · heure locale · en direct",
+          sched: "Calendrier",
+          tbd: "À définir",
+          loading: "Chargement…",
+          empty: "Tableau bientôt disponible.",
+          tzSuffix: "",
+          live: "EN DIRECT",
+          ft: "Fini",
+          today: "Aujourd'hui",
+          tomorrow: "Demain",
+          R32: "16es de finale",
+          R16: "8es de finale",
+          QF: "Quarts",
+          SF: "Demi-finales",
+          "3RD": "Petite finale",
+          FINAL: "Finale",
+        },
+        ar: {
+          title: "مخطط كأس العالم 2026",
+          back: "← لوحة التحكم",
+          sub: "من دور الـ32 إلى النهائي · التوقيت المحلي · مباشر",
+          sched: "الجدول",
+          tbd: "يحدد لاحقًا",
+          loading: "جارٍ التحميل…",
+          empty: "المخطط قريبًا.",
+          tzSuffix: "",
+          live: "مباشر",
+          ft: "انتهت",
+          today: "اليوم",
+          tomorrow: "غدًا",
+          R32: "دور الـ32",
+          R16: "دور الـ16",
+          QF: "ربع النهائي",
+          SF: "نصف النهائي",
+          "3RD": "المركز الثالث",
+          FINAL: "النهائي",
+        },
+      };
+      const TX = () => T[LANG] || T.en;
+      const nameFor = (t) => {
+        if (!t) return "";
+        if (LANG === "ko") return t.ko || t.en || "";
+        if (LANG === "en") return t.en || "";
+        return intlCountry(t.iso2) || t.en || t.ko || "";
+      };
+      const STADIUM_UTC_OFF = {
+        1: -6,
+        2: -6,
+        3: -6,
+        4: -5,
+        5: -5,
+        6: -5,
+        7: -4,
+        8: -4,
+        9: -4,
+        10: -4,
+        11: -4,
+        12: -4,
+        13: -7,
+        14: -7,
+        15: -7,
+        16: -7,
+      };
+      function toUtcISO(s, sid) {
+        if (!s) return "";
+        const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+        if (!m) return "";
+        const off = sid != null && STADIUM_UTC_OFF[String(sid)] != null ? STADIUM_UTC_OFF[String(sid)] : -5;
+        return new Date(Date.UTC(+m[3], +m[1] - 1, +m[2], +m[4], +m[5]) - off * 3600 * 1000).toISOString();
+      }
+      function emojiIso2(iso2) {
+        if (!iso2 || iso2.length !== 2) return "";
+        const cc = iso2.toUpperCase();
+        if (!/^[A-Z]{2}$/.test(cc)) return "";
+        return String.fromCodePoint(...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+      }
+      function flagOf(t) {
+        if (t && t.flag && /^https?:\/\//.test(t.flag)) return `<img class="fl-img" src="${t.flag}" alt="" loading="lazy">`;
+        const e = (t && t.flag) || emojiIso2(t && t.iso2);
+        return e ? `<span class="fl">${e}</span>` : `<span class="tbdfl"></span>`;
+      }
+      const fmtTime = (iso) => {
+        const d = new Date(iso);
+        return Number.isNaN(+d) ? "" : d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
+      };
+      const dayLabel = (iso) => {
+        const d = new Date(iso);
+        return Number.isNaN(+d) ? "" : d.toLocaleDateString(loc(), { month: "numeric", day: "numeric", weekday: "short" });
+      };
+      const dayKey = (iso) => {
+        const d = new Date(iso);
+        return Number.isNaN(+d) ? "" : d.toLocaleDateString("en-CA");
+      };
+      function tzLabel() {
+        try {
+          const p = new Intl.DateTimeFormat(loc(), { timeZoneName: "short" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName");
+          return p ? p.value + TX().tzSuffix : "";
+        } catch (_) {
+          return "";
+        }
+      }
+
+      const ROUNDS = ["R32", "R16", "QF", "SF", "FINAL"];
+      let MATCHES = [];
+      let BYID = null,
+        KOBYCODE = null;
+
+      async function loadStatic() {
+        let teams = [],
+          squad = { teams: [] };
+        try {
+          const [tj, sj] = await Promise.all([
+            fetch("/api/teams")
+              .then((r) => r.json())
+              .catch(() => ({})),
+            fetch("/squad.json", { cache: "no-cache" })
+              .then((r) => r.json())
+              .catch(() => ({ teams: [] })),
+          ]);
+          teams = tj.teams || tj || [];
+          squad = sj || { teams: [] };
+        } catch (_) {}
+        KOBYCODE = {};
+        (squad.teams || []).forEach((t) => {
+          if (t.country_code && t.country_ko) KOBYCODE[String(t.country_code).toUpperCase()] = t.country_ko;
+        });
+        BYID = {};
+        teams.forEach((t) => {
+          const code = (t.fifa_code || "").toUpperCase();
+          BYID[String(t.id)] = { en: t.name_en, ko: KOBYCODE[code] || t.name_en, iso2: t.iso2, flag: t.flag, code };
+        });
+      }
+
+      let loadedOnce = false;
+      async function refreshGames(prefetched) {
+        if (!BYID) return;
+        let games = null,
+          ok = false;
+        try {
+          const gj = prefetched
+            ? await prefetched
+            : await fetch("/api/games", { cache: "no-store" })
+                .then((r) => (r.ok ? r.json() : null))
+                .catch(() => null);
+          if (gj) {
+            games = gj.games || (Array.isArray(gj) ? gj : []);
+            ok = Array.isArray(games);
+          }
+        } catch (_) {}
+        if (!ok) {
+          if (!loadedOnce) $("loading").textContent = TX().loading;
+          clearTimeout(scheduleNext._t);
+          scheduleNext._t = setTimeout(() => refreshGames(), 4000);
+          return;
+        }
+        const nm = (g, side) => {
+          const t = BYID[String(g[side + "_team_id"])];
+          if (t && String(g[side + "_team_id"]) !== "0") return { ...t, tbd: false };
+          const en = g[side + "_team_name_en"] || "";
+          return { en, ko: KOBYCODE[en.toUpperCase()] || en, iso2: "", flag: "", code: "", tbd: !en };
+        };
+        const now = Date.now();
+        MATCHES = games
+          .filter((g) => ROUNDS.includes(g.group) || g.group === "3RD")
+          .map((g) => {
+            const iso = toUtcISO(g.local_date, g.stadium_id);
+            const te = String(g.time_elapsed || "").toLowerCase();
+            let fin = String(g.finished).toUpperCase() === "TRUE" || te === "finished";
+            let live = !fin && (te === "ht" || te === "live" || /^\d/.test(te));
+            if (!fin && !live && iso) {
+              const ko = Date.parse(iso);
+              if (!Number.isNaN(ko) && now >= ko) {
+                if (now < ko + 3.2 * 3600 * 1000) live = true;
+                else fin = true;
+              }
+            }
+            return { id: +g.id || 0, iso, group: g.group, home: nm(g, "home"), away: nm(g, "away"), hs: g.home_score, as: g.away_score, fin, live };
+          });
+        loadedOnce = true;
+        $("tznote").textContent = tzLabel();
+        render();
+        scheduleNext();
+      }
+
+      function scheduleNext() {
+        const live = MATCHES.some((m) => m.live);
+        clearTimeout(scheduleNext._t);
+        scheduleNext._t = setTimeout(refreshGames, live ? 15000 : 30000);
+      }
+
+      function whenLabel(m) {
+        const x = TX();
+        if (m.live) return `<span class="lvpill">${x.live}</span>`;
+        const today = dayKey(new Date().toISOString());
+        const tmrw = dayKey(new Date(Date.now() + 86400000).toISOString());
+        const dk = dayKey(m.iso);
+        const pre = dk === today ? x.today : dk === tmrw ? x.tomorrow : dayLabel(m.iso);
+        if (m.fin) return `${esc(pre)} · <span class="ft">${esc(x.ft)}</span>`;
+        const tm = fmtTime(m.iso);
+        return `${esc(pre)} ${esc(tm)}`;
+      }
+      function teamRow(m, side) {
+        const x = TX();
+        const t = m[side];
+        const tbd = t.tbd;
+        const showScore = m.fin || m.live;
+        const my = side === "home" ? +m.hs : +m.as;
+        const op = side === "home" ? +m.as : +m.hs;
+        const win = m.fin && !tbd && Number.isFinite(my) && Number.isFinite(op) && my > op;
+        const lose = m.fin && Number.isFinite(my) && Number.isFinite(op) && my < op;
+        const sc = showScore && !tbd && Number.isFinite(my) ? my : "";
+        return (
+          `<div class="team ${win ? "win" : ""} ${lose ? "lose" : ""} ${tbd ? "tbd" : ""}">` +
+          flagOf(tbd ? null : t) +
+          `<span class="nm">${tbd ? esc(x.tbd) : esc(nameFor(t))}</span>` +
+          `<span class="sc">${esc(sc)}</span>` +
+          (win ? `<span class="wmark">◀</span>` : "") +
+          `</div>`
+        );
+      }
+      function matchCard(m, ri, idx) {
+        return (
+          `<div class="mcard ${m.fin ? "dim" : ""}" data-round="${ri}" data-idx="${idx}">` +
+          `<div class="when">${whenLabel(m)}</div>` +
+          teamRow(m, "home") +
+          teamRow(m, "away") +
+          `</div>`
+        );
+      }
+
+      function render() {
+        const inner = $("binner");
+        const x = TX();
+        const byRound = {};
+        ROUNDS.forEach((r) => {
+          byRound[r] = MATCHES.filter((m) => m.group === r).sort((a, b) => a.id - b.id || String(a.iso).localeCompare(String(b.iso)));
+        });
+        const total = ROUNDS.reduce((s, r) => s + byRound[r].length, 0);
+        if (!total) {
+          $("loading").style.display = "";
+          $("loading").textContent = x.empty;
+          inner.style.display = "none";
+          return;
+        }
+        $("loading").style.display = "none";
+        inner.style.display = "";
+        let html = "";
+        ROUNDS.forEach((r, ri) => {
+          const ms = byRound[r];
+          html += `<div class="round"><div class="rtitle">${esc(x[r] || r)}</div><div class="rcol">`;
+          html += ms.map((m, i) => matchCard(m, ri, i)).join("");
+          html += `</div></div>`;
+        });
+        inner.innerHTML = html;
+        drawConnectors();
+        // 3·4위전
+        const third = MATCHES.find((m) => m.group === "3RD");
+        if (third) {
+          $("thirdBox").style.display = "";
+          $("thirdLbl").textContent = x["3RD"];
+          $("thirdCard").innerHTML = matchCard(third, 99, 0).replace(' data-round="99" data-idx="0"', "");
+        } else $("thirdBox").style.display = "none";
+      }
+
+      function drawConnectors() {
+        const inner = $("binner");
+        if (!inner) return;
+        inner.querySelectorAll("svg.conn").forEach((s) => s.remove());
+        const cards = [...inner.querySelectorAll(".mcard")];
+        if (!cards.length) return;
+        const byR = {};
+        cards.forEach((c) => {
+          const r = +c.dataset.round,
+            i = +c.dataset.idx;
+          (byR[r] = byR[r] || [])[i] = c;
+        });
+        const base = inner.getBoundingClientRect();
+        const ctr = (el) => {
+          const b = el.getBoundingClientRect();
+          return { l: b.left - base.left, t: b.top - base.top, w: b.width, h: b.height };
+        };
+        const svgns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgns, "svg");
+        svg.setAttribute("class", "conn");
+        svg.setAttribute("width", inner.scrollWidth);
+        svg.setAttribute("height", inner.scrollHeight);
+        let paths = "";
+        Object.keys(byR).forEach((rk) => {
+          const r = +rk,
+            next = byR[r + 1];
+          if (!next) return;
+          (byR[r] || []).forEach((c, i) => {
+            const n = next[Math.floor(i / 2)];
+            if (!c || !n) return;
+            const a = ctr(c),
+              b = ctr(n);
+            const x1 = a.l + a.w,
+              y1 = a.t + a.h / 2,
+              x2 = b.l,
+              y2 = b.t + b.h / 2,
+              mx = (x1 + x2) / 2;
+            paths += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} H${mx.toFixed(1)} V${y2.toFixed(1)} H${x2.toFixed(1)}"/>`;
+          });
+        });
+        svg.innerHTML = paths;
+        inner.insertBefore(svg, inner.firstChild);
+      }
+
+      function setStaticLabels() {
+        const x = TX();
+        document.documentElement.lang = LANG;
+        document.documentElement.dir = LANG === "ar" ? "rtl" : "ltr";
+        document.title = x.title + " | worldcup.bangbangi.com";
+        const set = (id, v) => {
+          const e = $(id);
+          if (e) e.textContent = v;
+        };
+        set("pgTitle", x.title);
+        set("backLink", x.back);
+        set("subLine", x.sub);
+        set("schedLink", x.sched);
+        const ld = $("loading");
+        if (ld && !loadedOnce) ld.textContent = x.loading;
+        const sel = $("langSel");
+        if (sel) sel.value = LANG;
+      }
+      function applyLang(lang) {
+        LANG = LANGS.includes(lang) ? lang : "ko";
+        try {
+          localStorage.setItem("wc_lang", LANG);
+        } catch (_) {}
+        setStaticLabels();
+        if (loadedOnce) render();
+      }
+      function initLangSelect() {
+        const sel = $("langSel");
+        if (!sel) return;
+        sel.innerHTML = LANGS.map((l) => `<option value="${l}" lang="${l}">${LANG_LABEL[l]}</option>`).join("");
+        sel.value = LANG;
+        sel.addEventListener("change", () => applyLang(sel.value));
+      }
+
+      let _rz;
+      window.addEventListener("resize", () => {
+        clearTimeout(_rz);
+        _rz = setTimeout(drawConnectors, 150);
+      });
+      window.addEventListener("load", () => setTimeout(drawConnectors, 300));
+
+      async function load() {
+        initLangSelect();
+        setStaticLabels();
+        const gamesP = fetch("/api/games", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+        await loadStatic();
+        await refreshGames(gamesP);
+      }
+      load();
+    </script>
+  </body>
+</html>

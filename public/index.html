@@ -1680,6 +1680,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "이 국가의 조 순위 데이터가 아직 없어요.",
           emptyFix: "표시할 일정이 없어요.",
           allSchedule: "전체 일정·결과 보기",
+          bracket: "대진표 보기",
           advTitle: "32강 진출 현황",
           advIn: "진출권",
           advOut: "탈락",
@@ -1758,6 +1759,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "No group standings yet.",
           emptyFix: "No fixtures to show.",
           allSchedule: "Full schedule & results",
+          bracket: "Bracket",
           advTitle: "Round of 32",
           advIn: "Qualifying",
           advOut: "Eliminated",
@@ -1836,6 +1838,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "Aún no hay clasificación del grupo.",
           emptyFix: "No hay partidos para mostrar.",
           allSchedule: "Calendario y resultados completos",
+          bracket: "Cuadro de eliminatorias",
           advTitle: "Dieciseisavos",
           advIn: "Clasifica",
           advOut: "Eliminado",
@@ -1914,6 +1917,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "Ainda não há classificação do grupo.",
           emptyFix: "Nenhum jogo para mostrar.",
           allSchedule: "Tabela e resultados completos",
+          bracket: "Chaveamento",
           advTitle: "16 avos",
           advIn: "Classifica",
           advOut: "Eliminado",
@@ -1992,6 +1996,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "Pas encore de classement du groupe.",
           emptyFix: "Aucun match à afficher.",
           allSchedule: "Calendrier et résultats complets",
+          bracket: "Tableau final",
           advTitle: "16es de finale",
           advIn: "Qualifié",
           advOut: "Éliminé",
@@ -2070,6 +2075,7 @@ Giovanni Reyna = 지오반니 레이나"
           emptyStand: "لا يوجد ترتيب للمجموعة بعد.",
           emptyFix: "لا توجد مباريات للعرض.",
           allSchedule: "الجدول والنتائج الكاملة",
+          bracket: "مخطط الأدوار",
           advTitle: "دور الـ32",
           advIn: "متأهل",
           advOut: "خارج",
@@ -3260,7 +3266,7 @@ Giovanni Reyna = 지오반니 레이나"
           el = document.getElementById("fixtures"),
           n = currentNation();
         document.getElementById("fixSub").textContent = n ? displayName(n) : "";
-        const link = `<a class="morelink" href="/schedule">${L.allSchedule} →</a>`;
+        const link = `<a class="morelink" href="/bracket">${L.bracket} →</a><a class="morelink" href="/schedule">${L.allSchedule} →</a>`;
         if (!state.fixtures.length) {
           el.innerHTML = `<div class="empty">${L.emptyFix}</div>` + link;
           return;
