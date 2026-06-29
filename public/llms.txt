@@ -1,9 +1,9 @@
 # 월드컵 2026 실시간 대시보드 (worldcup.bangbangi.com)
 
-> 2026 FIFA 월드컵(개최: 미국·캐나다·멕시코, 기간: 2026-06-11 ~ 2026-07-19)의 전 경기 일정·결과·조별 순위·득점 순위·도움 순위·공격포인트를 접속 지역 현지 시간으로 실시간 제공하는 한국어 대시보드입니다. 운영: 보동데이(bodongday).
+> 2026 FIFA 월드컵(개최: 미국·캐나다·멕시코, 기간: 2026-06-11 ~ 2026-07-19)의 전 경기 일정·결과·조별 순위·득점/도움/공격포인트·토너먼트 대진표·32강 진출 현황을 접속 지역 현지 시간으로 실시간 제공하는 다국어 대시보드입니다. 운영: 보동데이(bodongday).
 
 ## 주요 페이지
-- [실시간 대시보드](https://worldcup.bangbangi.com/): 라이브 경기, 다음 경기, 조별 순위, 득점·도움 순위, 통계 차트
+- [실시간 대시보드](https://worldcup.bangbangi.com/): 라이브·다음 경기, 조별 순위, 득점·도움 순위, 32강 진출 현황, 통계 차트
 - [전체 일정·결과](https://worldcup.bangbangi.com/schedule): 104경기 전체를 날짜별·조별로 정리(현지 시간, 실시간 결과)
 - [대진표](https://worldcup.bangbangi.com/bracket): 32강~결승 토너먼트 대진표를 라운드별로 시각화(현지 시간, 실시간 결과, 승자 진출 표시)
 
@@ -11,9 +11,31 @@
 - 경기 수: 총 104경기 (조별리그 72 + 결선 토너먼트 32: 32강·16강·8강·4강·3·4위전·결승)
 - 참가국: 48개국, 조별리그 A~L조
 - 경기장: 미국·캐나다·멕시코 16개 도시
-- 갱신: 라이브 경기 점수는 새로고침 없이 약 12초마다 자동 갱신, 모든 시간은 접속자(브라우저) 현지 시간 기준
+- 갱신: 라이브 경기 점수는 새로고침 없이 자동 갱신, 모든 시간은 접속자(브라우저) 현지 시간 기준
 - 언어: 한국어·영어·스페인어·포르투갈어·프랑스어·아랍어 6개 언어 지원(아랍어 RTL)
 
 ## 비고
 - /api/ 및 관리자 경로(/admin)는 색인 대상이 아닙니다.
-- 데이터는 공개 월드컵 데이터 소스를 기반으로 하며 비공식 팬 대시보드입니다.
+- 공개 월드컵 데이터를 기반으로 하는 비공식 팬 대시보드입니다.
+
+---
+
+# World Cup 2026 Live Dashboard (worldcup.bangbangi.com)
+
+> A multilingual live dashboard for the 2026 FIFA World Cup (hosts: USA, Canada, Mexico; June 11 – July 19, 2026). It shows every fixture, result, group standing, top scorers/assists/points, a knockout bracket, and a Round-of-32 qualification tracker — all in the visitor's local time and updated live. Operated by Bodongday (보동데이).
+
+## Key pages
+- [Live dashboard](https://worldcup.bangbangi.com/): live & upcoming matches, group standings, scorer/assist rankings, Round-of-32 qualification status, stat charts
+- [Full schedule & results](https://worldcup.bangbangi.com/schedule): all 104 matches by date and group (local time, live results)
+- [Bracket](https://worldcup.bangbangi.com/bracket): knockout tree from the Round of 32 to the Final (local time, live results, winner advancement)
+
+## Data overview
+- 104 matches total (72 group stage + 32 knockout: R32, R16, QF, SF, third-place, final)
+- 48 teams, groups A–L
+- 16 host cities across the USA, Canada and Mexico
+- Live scores auto-refresh without reloading; all times are shown in the visitor's local timezone
+- Languages: Korean, English, Spanish, Portuguese, French, Arabic (Arabic is RTL)
+
+## Notes
+- /api/ and the admin path (/admin) are not intended for indexing.
+- Based on public World Cup data; an unofficial fan-made dashboard.
