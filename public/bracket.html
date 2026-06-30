@@ -236,6 +236,7 @@
         min-width: 15px;
         text-align: right;
         color: var(--text);
+        white-space: nowrap;
       }
       .team.win .nm {
         font-weight: 700;
@@ -361,6 +362,7 @@
           tzSuffix: " 기준",
           live: "LIVE",
           ft: "풀타임",
+          pens: "승부차기",
           today: "오늘",
           tomorrow: "내일",
           R32: "32강",
@@ -381,6 +383,7 @@
           tzSuffix: "",
           live: "LIVE",
           ft: "FT",
+          pens: "pens",
           today: "Today",
           tomorrow: "Tomorrow",
           R32: "Round of 32",
@@ -401,6 +404,7 @@
           tzSuffix: "",
           live: "EN VIVO",
           ft: "FIN",
+          pens: "penales",
           today: "Hoy",
           tomorrow: "Mañana",
           R32: "Dieciseisavos",
@@ -421,6 +425,7 @@
           tzSuffix: "",
           live: "AO VIVO",
           ft: "FIM",
+          pens: "pênaltis",
           today: "Hoje",
           tomorrow: "Amanhã",
           R32: "16 avos",
@@ -441,6 +446,7 @@
           tzSuffix: "",
           live: "EN DIRECT",
           ft: "Fini",
+          pens: "t.a.b",
           today: "Aujourd'hui",
           tomorrow: "Demain",
           R32: "16es de finale",
@@ -461,6 +467,7 @@
           tzSuffix: "",
           live: "مباشر",
           ft: "انتهت",
+          pens: "ركلات الترجيح",
           today: "اليوم",
           tomorrow: "غدًا",
           R32: "دور الـ32",
@@ -609,7 +616,27 @@
                 else fin = true;
               }
             }
-            return { id: +g.id || 0, iso, group: g.group, home: nm(g, "home"), away: nm(g, "away"), hs: g.home_score, as: g.away_score, fin, live };
+            const pnum = (v) => (v == null || v === "" || v === "null" ? null : Number.isNaN(+v) ? null : +v);
+            const fh = String(g.home_team_label || "").match(/Match\s+(\d+)/i);
+            const fa = String(g.away_team_label || "").match(/Match\s+(\d+)/i);
+            const hp = pnum(g.home_penalty_score),
+              ap = pnum(g.away_penalty_score);
+            return {
+              id: +g.id || 0,
+              iso,
+              group: g.group,
+              home: nm(g, "home"),
+              away: nm(g, "away"),
+              hs: g.home_score,
+              as: g.away_score,
+              hp,
+              ap,
+              pens: hp != null && ap != null,
+              feedHome: fh ? +fh[1] : 0,
+              feedAway: fa ? +fa[1] : 0,
+              fin,
+              live,
+            };
           });
         loadedOnce = true;
         $("tznote").textContent = tzLabel();
@@ -630,7 +657,7 @@
         const tmrw = dayKey(new Date(Date.now() + 86400000).toISOString());
         const dk = dayKey(m.iso);
         const pre = dk === today ? x.today : dk === tmrw ? x.tomorrow : dayLabel(m.iso);
-        if (m.fin) return `${esc(pre)} · <span class="ft">${esc(x.ft)}</span>`;
+        if (m.fin) return `${esc(pre)} · <span class="ft">${esc(x.ft)}${m.pens ? " (" + esc(x.pens) + ")" : ""}</span>`;
         const tm = fmtTime(m.iso);
         return `${esc(pre)} ${esc(tm)}`;
       }
@@ -639,11 +666,23 @@
         const t = m[side];
         const tbd = t.tbd;
         const showScore = m.fin || m.live;
-        const my = side === "home" ? +m.hs : +m.as;
-        const op = side === "home" ? +m.as : +m.hs;
-        const win = m.fin && !tbd && Number.isFinite(my) && Number.isFinite(op) && my > op;
-        const lose = m.fin && Number.isFinite(my) && Number.isFinite(op) && my < op;
-        const sc = showScore && !tbd && Number.isFinite(my) ? my : "";
+        const myR = side === "home" ? +m.hs : +m.as;
+        const opR = side === "home" ? +m.as : +m.hs;
+        const myP = side === "home" ? m.hp : m.ap;
+        const opP = side === "home" ? m.ap : m.hp;
+        let win = false,
+          lose = false;
+        if (m.fin && !tbd) {
+          if (m.pens && myP != null && opP != null) {
+            win = myP > opP;
+            lose = myP < opP;
+          } else if (Number.isFinite(myR) && Number.isFinite(opR)) {
+            win = myR > opR;
+            lose = myR < opR;
+          }
+        }
+        let sc = "";
+        if (showScore && !tbd && Number.isFinite(myR)) sc = String(myR) + (m.pens && myP != null ? `(${myP})` : "");
         return (
           `<div class="team ${win ? "win" : ""} ${lose ? "lose" : ""} ${tbd ? "tbd" : ""}">` +
           flagOf(tbd ? null : t) +
@@ -655,7 +694,7 @@
       }
       function matchCard(m, ri, idx) {
         return (
-          `<div class="mcard ${m.fin ? "dim" : ""}" data-round="${ri}" data-idx="${idx}">` +
+          `<div class="mcard ${m.fin ? "dim" : ""}" data-round="${ri}" data-idx="${idx}" data-mid="${m.id}">` +
           `<div class="when">${whenLabel(m)}</div>` +
           teamRow(m, "home") +
           teamRow(m, "away") +
@@ -663,12 +702,55 @@
         );
       }
 
+      // 실제 대진 트리: home/away_team_label("Winner Match N")로 부모-자식 연결 → 라운드별 정렬 순서 계산
+      function bracketRank() {
+        const byId = {};
+        MATCHES.forEach((m) => (byId[m.id] = m));
+        const dmemo = {};
+        function leafMin(id) {
+          const m = byId[id];
+          if (!m) return Infinity;
+          if (dmemo[id] != null) return dmemo[id];
+          const d = !m.feedHome && !m.feedAway ? Date.parse(m.iso) || 0 : Math.min(leafMin(m.feedHome), leafMin(m.feedAway));
+          return (dmemo[id] = d);
+        }
+        const leafIdx = {};
+        let c = 0;
+        function dfs(id) {
+          const m = byId[id];
+          if (!m) return;
+          if (!m.feedHome && !m.feedAway) {
+            leafIdx[id] = c++;
+            return;
+          }
+          [m.feedHome, m.feedAway]
+            .filter((x) => byId[x])
+            .sort((a, b) => leafMin(a) - leafMin(b))
+            .forEach(dfs);
+        }
+        const root = MATCHES.find((m) => m.group === "FINAL");
+        if (root) dfs(root.id);
+        const rmemo = {};
+        function rank(id) {
+          const m = byId[id];
+          if (!m) return 1e9;
+          if (rmemo[id] != null) return rmemo[id];
+          const r = !m.feedHome && !m.feedAway ? (leafIdx[id] != null ? leafIdx[id] : m.id) : Math.min(rank(m.feedHome), rank(m.feedAway));
+          return (rmemo[id] = r);
+        }
+        const rk = {};
+        MATCHES.forEach((m) => (rk[m.id] = rank(m.id)));
+        return rk;
+      }
+
       function render() {
         const inner = $("binner");
         const x = TX();
+        const rk = bracketRank();
+        const ord = (m) => (rk[m.id] != null ? rk[m.id] : m.id);
         const byRound = {};
         ROUNDS.forEach((r) => {
-          byRound[r] = MATCHES.filter((m) => m.group === r).sort((a, b) => a.id - b.id || String(a.iso).localeCompare(String(b.iso)));
+          byRound[r] = MATCHES.filter((m) => m.group === r).sort((a, b) => ord(a) - ord(b) || a.id - b.id);
         });
         const total = ROUNDS.reduce((s, r) => s + byRound[r].length, 0);
         if (!total) {
@@ -703,32 +785,23 @@
         inner.querySelectorAll("svg.conn").forEach((s) => s.remove());
         const cards = [...inner.querySelectorAll(".mcard")];
         if (!cards.length) return;
-        const byR = {};
-        cards.forEach((c) => {
-          const r = +c.dataset.round,
-            i = +c.dataset.idx;
-          (byR[r] = byR[r] || [])[i] = c;
-        });
+        const cardById = {};
+        cards.forEach((c) => (cardById[c.dataset.mid] = c));
         const base = inner.getBoundingClientRect();
         const ctr = (el) => {
           const b = el.getBoundingClientRect();
           return { l: b.left - base.left, t: b.top - base.top, w: b.width, h: b.height };
         };
-        const svgns = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgns, "svg");
-        svg.setAttribute("class", "conn");
-        svg.setAttribute("width", inner.scrollWidth);
-        svg.setAttribute("height", inner.scrollHeight);
         let paths = "";
-        Object.keys(byR).forEach((rk) => {
-          const r = +rk,
-            next = byR[r + 1];
-          if (!next) return;
-          (byR[r] || []).forEach((c, i) => {
-            const n = next[Math.floor(i / 2)];
-            if (!c || !n) return;
-            const a = ctr(c),
-              b = ctr(n);
+        MATCHES.forEach((m) => {
+          const child = cardById[m.id];
+          if (!child) return;
+          [m.feedHome, m.feedAway].forEach((f) => {
+            if (!f) return;
+            const par = cardById[f];
+            if (!par) return;
+            const a = ctr(par),
+              b = ctr(child);
             const x1 = a.l + a.w,
               y1 = a.t + a.h / 2,
               x2 = b.l,
@@ -737,6 +810,11 @@
             paths += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} H${mx.toFixed(1)} V${y2.toFixed(1)} H${x2.toFixed(1)}"/>`;
           });
         });
+        const svgns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgns, "svg");
+        svg.setAttribute("class", "conn");
+        svg.setAttribute("width", inner.scrollWidth);
+        svg.setAttribute("height", inner.scrollHeight);
         svg.innerHTML = paths;
         inner.insertBefore(svg, inner.firstChild);
       }
